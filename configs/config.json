@@ -1,0 +1,9 @@
+{
+    "server_ip": "127.0.0.1",
+    "server_port": 12345,
+    "api_key": "your_api_key_here",
+
+    "device_id": "PhotoneoTL_DEV_farme_box",
+    "debug_mode": true,
+    "model_path": "../model/box1.pt"
+}
