@@ -1,6 +1,7 @@
 import time
-from datetime import datetime
 import json
+import math
+from datetime import datetime
 
 def current_milli_time():
     return round(time.time() * 1000)
@@ -19,3 +20,17 @@ def read_config(filename):
     except FileNotFoundError:
         print(f"Error: Configuration file '{filename}' not found.")
         return {}
+
+def p2p(point1, point2):
+    if len(point1) != 3 or len(point2) != 3:
+        raise ValueError("Both points must be 3D coordinates with x, y, and z values.")
+
+    distance = math.sqrt((point2[0] - point1[0])**2 + (point2[1] - point1[1])**2 + (point2[2] - point1[2])**2)
+    return distance
+
+def get_high_average(point1, point2, point3, point4, cam_setup):
+    if len(point1) != 3 or len(point2) != 3 or len(point3) != 3 or len(point4) != 3:
+        raise ValueError("Both points must be 3D coordinates with x, y, and z values.")
+
+    h = cam_setup - (point1[2] + point2[2] + point3[2] + point4[2])/4
+    return h

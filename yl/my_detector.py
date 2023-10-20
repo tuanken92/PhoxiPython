@@ -16,12 +16,14 @@ class My_Detector:
         self.model_path = model_path
         self.loaded = False
         self.load_model()
+        self.imgsz=640
+        self.conf=0.65
         
     def load_model(self):
         try:
             # Load a model
             t1 = current_milli_time()
-            print("Begin load model...")
+            print(f"Begin load model {self.model_path}...")
             self.model = YOLO(self.model_path)  # pretrained YOLOv8n model
             self.model.predict(np.zeros((640, 640, 3), dtype=np.uint8))
             print("Loaded model, it tool {0} ms".format(current_milli_time() - t1))
@@ -38,26 +40,28 @@ class My_Detector:
             # Make predictions
             t1 = current_milli_time()
             print("start predict {0}".format(source))
-            results = self.model.predict(source, save=False, imgsz=320, conf=0.5)
+            results = self.model.predict(source, save=False, imgsz=self.imgsz, conf=self.conf)
             print("--------->finnished, take {0} ms".format(current_milli_time() - t1))
             print(results[0])
             return results
         except:
             print(f"Can't predict")
         return None
-    def predict_frame(self, source):
+    def predict_frame(self, frame):
         if not self.loaded:
             print(f"Model not yet load, please load model and try again....")
             return None
-        try:
-            # Make predictions
-            t1 = current_milli_time()
-            print("-------->start predict {0}".format(source.shape))
-            results = self.model.predict(source, save=False, imgsz=320, conf=0.5)
-            print("--------->finnished, take {0} ms".format(current_milli_time() - t1))
-            return self.get_4points(results, source)
-        except:
-            print(f"Can't predict")
+        #try:
+        # Make predictions
+        t1 = current_milli_time()
+        print("-------->start predict, frame shape = {0}".format(frame.shape))
+        print("img.shape", frame.shape)
+        print("img.shape", type(frame))
+        results = self.model.predict(frame, save=False, imgsz=self.imgsz, conf=self.conf)
+        print("--------->finnished, take {0} ms, resutl = {1}".format(current_milli_time() - t1, len(results)))
+        return self.get_4points(results, frame)
+    #except:
+        #print(f"Can't predict")
         return None
 
     def predict(self, source):
@@ -69,9 +73,10 @@ class My_Detector:
                 t1 = current_milli_time()
                 print("--------->start predict {0}".format(source))
                 img = cv2.imread(source)
-                print(img.shape)
-                results = self.model.predict(img, save=False, imgsz=320, conf=0.5)
-                print("--------->finnished, take {0} ms".format(current_milli_time() - t1))
+                print("img.shape", img.shape)
+                print("img.shape", type(img))
+                results = self.model.predict(img, save=False, imgsz=self.imgsz, conf=self.conf)
+                print("--------->finnished, take {0} ms, resutl = {1}".format(current_milli_time() - t1, len(results)))
                 self.get_4points(results, img)
                 return results
             except:
@@ -80,10 +85,13 @@ class My_Detector:
 
 
     def get_4points(self, results, img):
+            print("results = ", results)
+
             masks = results[0].masks
             if masks is not None:
                 n_points = masks.xy
-                #print("n_points",n_points)
+            else:
+                return None
             
             mask = np.array(n_points, np.int32)
             #print("mask",mask)
@@ -103,7 +111,7 @@ class My_Detector:
 
                 center, (width, height), angle = rect
                 # Add padding (in pixels) to the width and height
-                padding = -10  # Adjust this value as needed
+                padding = -20  # Adjust this value as needed
                 width += 2 * padding
                 height += 2 * padding
 

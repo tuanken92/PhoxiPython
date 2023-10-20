@@ -34,9 +34,10 @@ def display_color_image_if_available(color_component, name):
     color_image = color_component.data.reshape(color_component.height, color_component.width, 3).copy()
     # Normalize array to range 0 - 65535
     color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+
     color_image = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
     # Show image
-    #cv2.imshow(name, color_image)
+    cv2.imshow(name, color_image)
     
     cv2.imwrite("xxx_{0}.bmp".format(current_milli_time()), color_image)
     return color_image
@@ -44,17 +45,18 @@ def display_color_image_if_available(color_component, name):
 def get_texture(color_component, name):
     if color_component.width == 0 or color_component.height == 0:
         print(name + " is empty!")
-        return
+        return None
     
     # Reshape 1D array to 2D RGB image
     color_image = color_component.data.reshape(color_component.height, color_component.width, 3).copy()
     # Normalize array to range 0 - 65535
-    color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+    #color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
     color_image = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
+    color_image = color_image.astype(np.int16)
     # Show image
     #cv2.imshow(name, color_image)
-    b = cv2.imwrite("atk.jpg", color_image)
-    print("atk = {0}".format(b))
+    b = cv2.imwrite("fr_{0}.bmp".format(current_milli_time()), color_image)
+    print("save frame = {0}".format(b))
     return color_image
 
 def display_pointcloud_if_available(pointcloud_comp, normal_comp, texture_comp, texture_rgb_comp):

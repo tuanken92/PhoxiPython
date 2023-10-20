@@ -5,10 +5,13 @@ import os
 import sys
 from sys import platform
 from harvesters.core import Harvester
+import time
 
 cam_channels = 3
 cam_width = 0
 cam_height = 0
+def current_milli_time():
+    return round(time.time() * 1000)
 
 def getPointCloud(y, x, pointcloud_comp):
     
@@ -51,10 +54,16 @@ def display_color_image_if_available(color_component, name):
     
     # Reshape 1D array to 2D RGB image
     color_image = color_component.data.reshape(color_component.height, color_component.width, 3).copy()
+    max_value = np.amax(color_image)
+    print("Maximum value in color_image:", max_value)
+    
     # Normalize array to range 0 - 65535
-    color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+    color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=max_value, norm_type=cv2.NORM_MINMAX)
+    cv2.imwrite("yyy_{0}.bmp".format(current_milli_time()), color_image)
     color_image = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
+    img_write = color_image.copy()
     # Show image
+    cv2.imwrite("xxx_{0}.bmp".format(current_milli_time()), img_write)
     cv2.imshow(name, color_image)
     return
 
@@ -175,8 +184,8 @@ def freerun():
                 display_color_image_if_available(color_image_component, "ColorCameraImage")
 
                 point_cloud_component = payload.components[2]
-                #norm_component = payload.components[3]
-                #display_pointcloud_if_available(point_cloud_component, norm_component, texture_component, texture_rgb_component)
+                norm_component = payload.components[3]
+                display_pointcloud_if_available(point_cloud_component, norm_component, texture_component, texture_rgb_component)
                 getPointCloud(451,118, point_cloud_component)
                 getPointCloud(118,451, point_cloud_component)
                 # The buffer object will automatically call its dto once it goes

@@ -5,16 +5,19 @@ import numpy as np
 import cv2
 import os
 import sys
+
 from sys import platform
 from harvesters.core import Harvester
 from camera.camera_func import*
 
 class My_Camera:
-    def __init__(self, device_id) -> None:
+    def __init__(self, device_id, cam_wd) -> None:
         self.point_cloud_component = None
-
+        self.point_cloud = None
+        self.cam_width = 0
 
         self.device_id = device_id
+        self.cam_working_distance = cam_wd
         self.cam = None
         self.cam_feature = None
         self.is_connected = False
@@ -76,6 +79,24 @@ class My_Camera:
         # Trigger frame by calling property's setter.
         # Must call TriggerFrame before every fetch.
         self.features.TriggerFrame.execute() # trigger first frame
+
+        # also possible use with error checking:
+        self.features.TriggerFrame.execute() # trigger third frame
+        # buffer = self.cam.try_fetch(timeout=10.0) # grab newest frame
+        # if buffer is None:
+        #     # check if device is still connected
+        #     self.is_connected = self.features.IsConnected.value
+        #     if not self.is_connected:
+        #         print('Device disconnected!--------------reconnect camera please!')
+        # # ...
+        # # work with buffer
+        # # ...
+        # payload = buffer.payload
+        # texture_rgb_component = payload.components[1]
+        # frame = get_texture(texture_rgb_component, "TextureRGB")
+        # # release used buffer (only limited buffers available)
+        # buffer.queue()
+        # return frame
         with self.cam.fetch(timeout=10.0) as buffer:
             # grab first frame
             # do something with first frame
@@ -85,6 +106,8 @@ class My_Camera:
             # out of scope and releases internal buffer object.
             payload = buffer.payload
             self.point_cloud_component = payload.components[2]
+            self.cam_width = self.point_cloud_component.width
+            self.point_cloud = self.point_cloud_component.data.reshape(self.point_cloud_component.height * self.point_cloud_component.width, 3).copy()
             self.getPointCloud(451,118)
 
             #text ture 
@@ -107,7 +130,7 @@ class My_Camera:
             # The buffer object will automatically call its dto once it goes
             # out of scope and releases internal buffer object.
             payload = buffer.payload
-            self.point_cloud_component = payload.components[2]
+            self.point_cloud_component = payload.components[2].copy()
             self.getPointCloud(451,118)
 
 
@@ -146,23 +169,40 @@ class My_Camera:
             print(f"exception: Connect to camera error, check connection....!")
         return self.is_connected
 
+    def box_calculation(self, conners):
+        print(conners)
+        if conners.size == 0:
+            print(f"Not found conner, can't get box dim, try again!")
+            return
+
+
+        p = []
+        for index, item in enumerate(conners):
+            print(index, item)
+            x, y = item
+            print(f"Point: ({x}, {y})")
+            p.append(self.getPointCloud(y,x))
+        
+        #get distance from p2p
+        w = p2p(p[0], p[1])
+        h = p2p(p[1], p[2])
+        z = get_high_average(p[0], p[1], p[2], p[3], self.cam_working_distance)
+        print(f"box dim = {w},{h},{z}")
+
     def getPointCloud(self, y, x):
         #convert point cloud
-        pointcloud = self.point_cloud_component.data.reshape(self.point_cloud_component.height * self.point_cloud_component.width, 3).copy()
-        print("pointcloud shape = {0}".format(pointcloud.shape))
+        
+        print("pointcloud shape = {0}".format(self.point_cloud.shape))
 
-        cam_width = self.point_cloud_component.width
-        print("cam_width = {0}".format(cam_width))
+        
+        print("cam_width = {0}".format(self.cam_width))
 
         #get index
-        index = (y * cam_width + x)
-
+        index = (int)(y * self.cam_width + x)
+        print(f"point cloud index = {index}")
         #get data
-        print("data 2d ({0},{1}) => 3d ({2}), index = {3}".format(x,y,pointcloud[index],index))
-
-        #index = 2273394
-        #print("data 2d ({0},{1}) => 3d ({2}), index = {3}".format(x,y,pointcloud[index],index))
-        print(pointcloud)
+        print("data 2d ({0},{1}) => 3d ({2}), index = {3}".format(x,y,self.point_cloud[index],index))
+        return self.point_cloud[index]
 
 
     def close(self):

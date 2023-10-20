@@ -3,7 +3,8 @@
     "server_port": 12345,
     "api_key": "your_api_key_here",
 
-    "device_id": "PhotoneoTL_DEV_farme_box",
+    "device_id": "PhotoneoTL_DEV_farme_box2",
+    "cam_working_distance": 880.0,
     "debug_mode": true,
-    "model_path": "../model/box1.pt"
+    "model_path": "../model/best.pt"
 }
