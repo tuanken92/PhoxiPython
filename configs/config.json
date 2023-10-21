@@ -1,10 +1,15 @@
 {
     "server_ip": "127.0.0.1",
-    "server_port": 8000,
+    "server_port": 8002,
     "api_key": "your_api_key_here",
 
-    "device_id_test": "PhotoneoTL_DEV_farme_box2, PhotoneoTL_DEV_IDV-087",
-    "device_id": "PhotoneoTL_DEV_farme_box",
+    "device_id": "PhotoneoTL_DEV_IDV-087",
+    "device_id2": "PhotoneoTL_DEV_farme_box",
+    
+    "trigger": "Software",
+    "trigger1": "Freerun",
+    
+
     "cam_working_distance": 880.0,
     "debug_mode": true,
     "model_path": "../model/mother_of_best.pt"

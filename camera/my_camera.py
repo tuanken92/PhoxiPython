@@ -13,12 +13,13 @@ from camera.YCoCg import*
 from box.box import*
 
 class My_Camera:
-    def __init__(self, device_id, cam_wd) -> None:
+    def __init__(self, device_id, cam_wd, trig) -> None:
         self.point_cloud_component = None
         self.point_cloud = None
         self.cam_width = 0
 
         self.device_id = device_id
+        self.trigger = trig
         self.cam_working_distance = cam_wd
         self.cam = None
         self.cam_feature = None
@@ -37,9 +38,6 @@ class My_Camera:
         print("--> cti_file_path: ", cti_file_path)
         self.h.add_file(cti_file_path, True, True)
         
-    def new_buffer_handler(self):
-        # This function handles the NEW_BUFFER_AVAILABLE event.
-        print("==============>  New buffer is available. Processing...")
 
 
     def find_camera(self):
@@ -57,7 +55,7 @@ class My_Camera:
     def configure_camera(self):
         #print(dir(features))
         print("TriggerMode BEFORE: ", self.features.PhotoneoTriggerMode.value)
-        self.features.PhotoneoTriggerMode.value = "Software"
+        self.features.PhotoneoTriggerMode.value = self.trigger
         print("TriggerMode AFTER: ", self.features.PhotoneoTriggerMode.value)
 
         # Order is fixed on the selected output structure. Disabled fields are shown as empty components.
@@ -93,21 +91,6 @@ class My_Camera:
                 pass
         # also possible use with error checking:
         self.features.TriggerFrame.execute() # trigger third frame
-        # buffer = self.cam.try_fetch(timeout=10.0) # grab newest frame
-        # if buffer is None:
-        #     # check if device is still connected
-        #     self.is_connected = self.features.IsConnected.value
-        #     if not self.is_connected:
-        #         print('Device disconnected!--------------reconnect camera please!')
-        # # ...
-        # # work with buffer
-        # # ...
-        # payload = buffer.payload
-        # texture_rgb_component = payload.components[1]
-        # frame = get_texture(texture_rgb_component, "TextureRGB")
-        # # release used buffer (only limited buffers available)
-        # buffer.queue()
-        # return frame
         with self.cam.fetch(timeout=10.0) as buffer:
             # grab first frame
             # do something with first frame
@@ -231,11 +214,11 @@ class My_Camera:
             # display_pointcloud_if_available(point_cloud_component, norm_component, texture_component, texture_rgb_component)
 
     def connect(self):
-        try:
+        if True:
             #connect cam with ID
             self.cam = self.h.create({'id_': self.device_id})
-            print(self.cam.Events.__members__)
-            self.cam.add_callback(self.cam.Events.NEW_BUFFER_AVAILABLE,self.new_buffer_handler )
+            #print(self.cam.Events.__members__)
+            
             self.features = self.cam.remote_device.node_map
             self.is_connected = True
 
@@ -243,12 +226,11 @@ class My_Camera:
             self.configure_camera()
             
             #run thread
-            self.is_connected = True
             # self.receive_thread = threading.Thread(target=self.receive_data_thread)
             # self.receive_thread.daemon = True
             # self.receive_thread.start()
 
-        except:
+        else:
             self.is_connected = False
             print(f"exception: Connect to camera error, check connection....!")
         return self.is_connected
@@ -258,7 +240,7 @@ class My_Camera:
         print("conners type", type(conners))
         if len(conners) == 0:
             print(f"Not found conner, can't get box dim, try again!")
-            return
+            return None
 
 
         p = []

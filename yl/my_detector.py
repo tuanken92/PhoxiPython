@@ -117,10 +117,10 @@ class My_Detector:
 
                 # Recreate the rectangle with padding
                 rect_with_padding = ((center[0], center[1]), (width, height), angle)
-                box_with_padding = cv2.boxPoints(rect_with_padding).astype(np.uint0)
+                box_with_padding = cv2.boxPoints(rect_with_padding).astype(np.uintp)
 
                 print("rect", rect)
-                box = cv2.boxPoints(rect).astype(np.uint0)
+                box = cv2.boxPoints(rect).astype(np.uintp)
                 print("box", box)
                 cv2.drawContours(img, [box], 0, color, tl)
                 cv2.drawContours(img, [box_with_padding], 0, (0,255,0), tl)

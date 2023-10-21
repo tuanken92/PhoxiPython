@@ -56,7 +56,7 @@ def get_texture(color_component, name):
     #color_image = color_image.astype(np.int8)
     # Show image
     #cv2.imshow(name, color_image)
-    b = cv2.imwrite("fr_{0}.bmp".format(current_milli_time()), color_image)
+    b = cv2.imwrite("frame/fr_{0}.bmp".format(current_milli_time()), color_image)
     print("save frame = {0}".format(b))
     return color_image
 

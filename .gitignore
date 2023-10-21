@@ -3,4 +3,7 @@ __pycache__/
 *.py[cod]
 
 PhotoneoLogFiles/*
+frame/
 fr_*
+*.bmp
+*.jpg

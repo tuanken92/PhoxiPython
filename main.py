@@ -8,6 +8,7 @@ from yl.my_detector import*
 enable_thread_tcp = False
 enable_thread_keyboard = False
 device_id = ""
+trigger = ""
 
 #thread
 thTCPClient = None
@@ -48,7 +49,7 @@ def init_proc():
     global thTCPClient, thKeyboard
     global enable_thread_tcp
     global enable_thread_keyboard
-    global device_id
+    global device_id, trigger
 
 
     t1 = current_milli_time()
@@ -59,8 +60,12 @@ def init_proc():
         server_ip = config.get("server_ip")
         server_port = config.get("server_port")
         api_key = config.get("api_key")
+
         debug_mode = config.get("debug_mode")
+
         device_id = config.get("device_id")
+        trigger = config.get("trigger")
+        
         cam_wd = config.get("cam_working_distance")
 
         model_path = config.get("model_path")
@@ -69,7 +74,7 @@ def init_proc():
         print(f"Server Port: {server_port}")
         print(f"API Key: {api_key}")
         print(f"Debug Mode: {debug_mode}")
-        print(f"device_id: {device_id}, WD = {cam_wd}")
+        print(f"device_id: {device_id}, WD = {cam_wd}, trigger = {trigger}")
         print(f"model_path: {model_path}")
     else:
         print("Configuration not loaded. Check your JSON file or path.")
@@ -80,7 +85,7 @@ def init_proc():
     client.connect()
 
     #camera
-    camera = My_Camera(device_id, cam_wd)
+    camera = My_Camera(device_id, cam_wd, trigger)
     camera.find_camera()
     is_connected = camera.connect()
     print("Is connected to camera {0} = {1}".format(device_id, is_connected))
@@ -99,51 +104,35 @@ def process_cam_by_tcpip():
     global thTCPClient, thKeyboard
     global enable_thread_tcp
     global enable_thread_keyboard
-    global device_id
+    global device_id, trigger
 
 
     print(f"===========start thread tcp-client============")
     while enable_thread_tcp:
-        if client == None:
+        if client == None or client.is_connected == False:
             time.sleep(0.05)
-        else:   
-            #get data
-            data_server = client.client_socket.recv(1024)
-            if not data_server:
-                print("Server closed the connection.")
-                client.is_connected = False
-                break
-            data = data_server.decode()
-            print(f"data = {data}, type = {type(data)}")
+            continue
+        
+        #get data
+        data_server = client.client_socket.recv(1024)
+        if not data_server:
+            print("=============Server closed the connection, close thread tcp-client")
+            client.is_connected = False
+            enable_thread_tcp = False
+            break
 
-            #compare data
-            if data == None:
-                time.sleep(0.05)
+        data = data_server.decode()
+        print(f"data = {data}, type = {type(data)}")
 
-            elif data == "t":
-                #trigger & process
-                #get frame from camera
-                frame = camera.trigger_camera()
-                print("1---->frame data = ", frame.shape)
-                #detect conner
-                file_name_debug = "fr_current.bmp"
-                b = cv2.imwrite(file_name_debug, frame)
-                print("2----->connner begin, frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
-                
-                #detect box
-                conners = detector.predict_frame(frame)
-                box_data = camera.box_calculation(conners)
-                client.send_data(box_data)
-            elif data == "q":
-                enable_thread_tcp = False
-                enable_thread_keyboard = False
-                break
-            else:
-                print("data from server = {0}".format(data))
+        if data == None:
+            time.sleep(0.05)
+            continue
 
+        #process data
+        process_message(data)
 
-            #clear data
-            client.data = None
+        #clear data
+        client.data = None
         
     print(f"===========finish thread tcp-client============")
 
@@ -153,48 +142,68 @@ def process_keyboard():
     global thTCPClient, thKeyboard
     global enable_thread_tcp
     global enable_thread_keyboard
-    global device_id
+    global device_id, trigger
 
 
     print(f"===========start thread keyboard============")
     while enable_thread_keyboard:
         message = input("Enter a message to send (or 'q' to quit): ")
-        
-        if message.lower() == 'q':
-            enable_thread_tcp = False
-            enable_thread_keyboard = False
-            break
-        if message.lower() == 'r':
-            is_connected = camera.connect()
-            print("Is connected to camera {0} = {1}".format(device_id, is_connected))
-        elif message.lower() == 't':
-            #get frame from camera
-            frame = camera.trigger_camera()
-            print("1---->frame data = ", frame.shape)
-            #detect conner
-            file_name_debug = "fr_current.bmp"
-            b = cv2.imwrite(file_name_debug, frame)
-            print("2----->connner begin, frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
-            
-            #detect box
-            conners = detector.predict_frame(frame)
-            box_data = camera.box_calculation(conners)
-            client.send_data(box_data)
-            
-        elif message.lower() == ' ':
-            camera.trigger_camera_display()
-        elif message.lower() == 'e':
-            camera.close()
-        elif message.lower() == 'load':
-            detector.load_model()
-        elif ".jpg" in message.lower() or ".png" in message.lower() or ".bmp" in message.lower():
-            detector.predict(message.lower())
+        process_message(message)
 
     print(f"===========finish thread keyboard============")
 
+def process_message(message):
+    global client, camera, detector, config
+    global thTCPClient, thKeyboard
+    global enable_thread_tcp
+    global enable_thread_keyboard
+    global device_id, trigger
+
+
+    print(f"===========data = {message}============")
+    
+    if message == 'q':
+        enable_thread_tcp = False
+        enable_thread_keyboard = False
+        return
+
+    if message == 'r':
+        is_connected = camera.connect()
+        print("Is connected to camera {0} = {1}".format(device_id, is_connected))
+
+    elif message == 't':
+        #get frame from camera
+        frame = camera.trigger_camera()
+        print("1---->frame data = ", frame.shape)
+        #detect conner
+        file_name_debug = "fr_current.bmp"
+        b = cv2.imwrite(file_name_debug, frame)
+        print("2----->connner begin, frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
+        
+        #detect box
+        conners = detector.predict_frame(frame)
+        box_data = camera.box_calculation(conners)
+        if box_data == None:
+            pass
+        else:
+            client.send_data(box_data)
+        
+    elif message == ' ':
+        camera.trigger_camera_display()
+
+    elif message == 'e':
+        camera.close()
+
+    elif message == 'load':
+        detector.load_model()
+
+    elif ".jpg" in message or ".png" in message or ".bmp" in message:
+        detector.predict(message)
+
+    print(f"==========done=============")
 
 if __name__ == '__main__':
-    
+    print(f"==========staring program=============")
     #init program
     init_proc()
 
