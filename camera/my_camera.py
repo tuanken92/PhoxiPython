@@ -37,6 +37,10 @@ class My_Camera:
         print("--> cti_file_path: ", cti_file_path)
         self.h.add_file(cti_file_path, True, True)
         
+    def new_buffer_handler(self):
+        # This function handles the NEW_BUFFER_AVAILABLE event.
+        print("==============>  New buffer is available. Processing...")
+
 
     def find_camera(self):
         self.h.update()
@@ -47,6 +51,8 @@ class My_Camera:
         for item in self.h.device_info_list:
             print(item.property_dict['serial_number'], ' : ', item.property_dict['id_'])
         print()
+
+
 
     def configure_camera(self):
         #print(dir(features))
@@ -228,6 +234,8 @@ class My_Camera:
         try:
             #connect cam with ID
             self.cam = self.h.create({'id_': self.device_id})
+            print(self.cam.Events.__members__)
+            self.cam.add_callback(self.cam.Events.NEW_BUFFER_AVAILABLE,self.new_buffer_handler )
             self.features = self.cam.remote_device.node_map
             self.is_connected = True
 
@@ -292,6 +300,7 @@ class My_Camera:
             self.is_connected = False
             # if self.receive_thread:
             #     self.receive_thread.join()
+            self.cam.remove_callback(self.cam.Events.NEW_BUFFER_AVAILABLE)
             self.cam.stop()
             # self.cam.destroy()
         
