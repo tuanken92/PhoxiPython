@@ -50,7 +50,7 @@ class My_Detector:
     def predict_frame(self, frame):
         if not self.loaded:
             print(f"Model not yet load, please load model and try again....")
-            return None
+            return []
         #try:
         # Make predictions
         t1 = current_milli_time()
@@ -91,7 +91,7 @@ class My_Detector:
             if masks is not None:
                 n_points = masks.xy
             else:
-                return None
+                return []
             
             mask = np.array(n_points, np.int32)
             #print("mask",mask)
@@ -128,5 +128,5 @@ class My_Detector:
 
                 print("box get 3D", box_with_padding)
                 return box_with_padding
-            return None
+            return []
 

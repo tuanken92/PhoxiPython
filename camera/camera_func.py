@@ -53,11 +53,15 @@ def get_texture(color_component, name):
     #color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
     color_image = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
     color_image = color_image.astype(np.int16)
+    #color_image = color_image.astype(np.int8)
     # Show image
     #cv2.imshow(name, color_image)
     b = cv2.imwrite("fr_{0}.bmp".format(current_milli_time()), color_image)
     print("save frame = {0}".format(b))
     return color_image
+
+
+
 
 def display_pointcloud_if_available(pointcloud_comp, normal_comp, texture_comp, texture_rgb_comp):
     # if pointcloud_comp.width == 0 or pointcloud_comp.height == 0:

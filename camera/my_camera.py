@@ -9,6 +9,8 @@ import sys
 from sys import platform
 from harvesters.core import Harvester
 from camera.camera_func import*
+from camera.YCoCg import*
+from box.box import*
 
 class My_Camera:
     def __init__(self, device_id, cam_wd) -> None:
@@ -79,7 +81,10 @@ class My_Camera:
         # Trigger frame by calling property's setter.
         # Must call TriggerFrame before every fetch.
         self.features.TriggerFrame.execute() # trigger first frame
-
+        with self.cam.fetch(timeout=10.0) as buffer:
+                # grab first frame
+                # do something with first frame
+                pass
         # also possible use with error checking:
         self.features.TriggerFrame.execute() # trigger third frame
         # buffer = self.cam.try_fetch(timeout=10.0) # grab newest frame
@@ -117,7 +122,78 @@ class My_Camera:
             texture_rgb_component = payload.components[1]
             return get_texture(texture_rgb_component, "TextureRGB")
             
-    
+
+    def trigger_camera2(self):
+        # Trigger frame by calling property's setter.
+        # Must call TriggerFrame before every fetch.
+        self.features.TriggerFrame.execute() # trigger first frame
+        with self.cam.fetch(timeout=10.0) as buffer:
+                # grab first frame
+                # do something with first frame
+                pass
+        # also possible use with error checking:
+        self.features.TriggerFrame.execute() # trigger third frame
+       
+        with self.cam.fetch(timeout=10.0) as buffer:
+            # grab first frame
+            # do something with first frame
+            print("buffer = ",buffer)
+
+            # The buffer object will automatically call its dto once it goes
+            # out of scope and releases internal buffer object.
+            payload = buffer.payload
+            # self.point_cloud_component = payload.components[2]
+            # self.cam_width = self.point_cloud_component.width
+            # self.point_cloud = self.point_cloud_component.data.reshape(self.point_cloud_component.height * self.point_cloud_component.width, 3).copy()
+            # self.getPointCloud(451,118)
+
+
+            # Create a NumPy array from the image data
+            texture_rgb_component = payload.components[1]
+
+            height = texture_rgb_component.height
+            width =  texture_rgb_component.width
+            data = texture_rgb_component.data.copy()
+            # color_image = color_component.data.reshape(color_component.height, color_component.width, 3).copy()
+            data_array = np.frombuffer(data, dtype=np.uint16)
+
+            print(f"h={height}, w = {width}, size = {height*width}, data size = {data_array.size}")
+            # Reshape the data to match the image dimensions
+            matYCoCg = np.reshape(data_array, (height, width,3))
+            matRgb = YCoCg.convertToRGB(matYCoCg)
+
+            # # Convert YCoCg to RGB
+            # rgb_mat = YCoCg.convertToRGB(mat)
+            # print("======> rgb_mat shape = {0}".format(rgb_mat.shape))
+
+            # # Normalize for visualization
+            # rgb_mat = cv2.normalize(matRgb, None, 0, 255, cv2.NORM_MINMAX)
+            # rgb_mat = rgb_mat.astype(np.uint8)
+
+            # cv2.imshow uses BGR format, so convert back to BGR
+            #matRgb = cv2.cvtColor(matRgb, cv2.COLOR_RGB2BGR)
+            # print("======> rgb_mat shape2 = {0}".format(rgb_mat.shape))
+            
+            return matRgb
+
+    def cvt_color(self, color_component, name):
+        if color_component.width == 0 or color_component.height == 0:
+            print(name + " is empty!")
+            return None
+        
+        # Reshape 1D array to 2D RGB image
+        color_image = color_component.data.reshape(color_component.height, color_component.width, 3).copy()
+        # Normalize array to range 0 - 65535
+        #color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+        color_image = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
+        color_image = color_image.astype(np.int16)
+        #color_image = color_image.astype(np.int8)
+        # Show image
+        #cv2.imshow(name, color_image)
+        b = cv2.imwrite("fr_{0}.bmp".format(current_milli_time()), color_image)
+        print("save frame = {0}".format(b))
+        return color_image
+
     def trigger_camera_display(self):
         # Trigger frame by calling property's setter.
         # Must call TriggerFrame before every fetch.
@@ -170,8 +246,9 @@ class My_Camera:
         return self.is_connected
 
     def box_calculation(self, conners):
-        print(conners)
-        if conners.size == 0:
+        print("conners", conners)
+        print("conners type", type(conners))
+        if len(conners) == 0:
             print(f"Not found conner, can't get box dim, try again!")
             return
 
@@ -188,6 +265,11 @@ class My_Camera:
         h = p2p(p[1], p[2])
         z = get_high_average(p[0], p[1], p[2], p[3], self.cam_working_distance)
         print(f"box dim = {w},{h},{z}")
+        box = BOX()
+        box.height = z
+        box.width = h
+        box.length = w
+        return box.to_json()
 
     def getPointCloud(self, y, x):
         #convert point cloud
@@ -211,5 +293,5 @@ class My_Camera:
             # if self.receive_thread:
             #     self.receive_thread.join()
             self.cam.stop()
-            self.cam.destroy()
+            # self.cam.destroy()
         

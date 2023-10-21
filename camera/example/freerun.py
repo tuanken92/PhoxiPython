@@ -43,6 +43,9 @@ def display_texture_if_available(texture_component):
     rows, cols, channels = texture.shape
     print("texture shape = {0}".format(texture.shape))
     texture_screen = cv2.normalize(texture, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+
+    #save image here
+    cv2.imwrite("abc.jpg". tex)
     # Show image
     cv2.imshow("Texture", texture_screen)
     return

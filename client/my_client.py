@@ -17,9 +17,9 @@ class My_Client:
             self.client_socket.connect((self.server_ip, self.server_port))
             self.is_connected = True
             print(f"Connected to {self.server_ip}:{self.server_port}")
-            self.receive_thread = threading.Thread(target=self.receive_data_thread)
-            self.receive_thread.daemon = True
-            self.receive_thread.start()
+            # self.receive_thread = threading.Thread(target=self.receive_data_thread)
+            # self.receive_thread.daemon = True
+            # self.receive_thread.start()
         except ConnectionRefusedError:
             self.is_connected = False
             print(f"Connection to {self.server_ip}:{self.server_port} refused")
@@ -33,13 +33,16 @@ class My_Client:
 
     def receive_data_thread(self):
         while self.is_connected:
-            data = self.client_socket.recv(1024)
-            if not data:
+            data_server = self.client_socket.recv(1024)
+            if not data_server:
                 print("Server closed the connection.")
                 self.is_connected = False
                 break
-            message = data.decode()
-            self.on_data_received(message)  # You can implement your event handling logic here
+            self.data = data_server.decode()
+            self.on_data_received(self.data)  # You can implement your event handling logic here
+
+    def get_data_from_server(self):
+        return self.data
 
     def on_data_received(self, data):
         # This is where you can implement your event handling logic
