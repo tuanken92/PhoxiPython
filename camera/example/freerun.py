@@ -5,11 +5,44 @@ import os
 import sys
 from sys import platform
 from harvesters.core import Harvester
+from harvesters.core import ParameterSet, ParameterKey
+from harvesters.core import ImageAcquirer
+from typing import Optional
+from harvesters.core import Callback
+
 import time
 
 cam_channels = 3
 cam_width = 0
 cam_height = 0
+
+
+class _OnNewBufferAvailable(Callback):
+    def __init__(self, ia: ImageAcquirer, buffers: list):
+        super().__init__()
+        self._ia = ia
+        self._buffers = buffers
+
+    def emit(self, context: Optional[object] = None) -> None:
+        buffer = self._ia.fetch()
+        self._buffers.append(buffer)
+
+    @property
+    def buffers(self):
+        return self._buffers
+
+
+class _OnReturnBufferNow(Callback):
+    def __init__(self, holder: _OnNewBufferAvailable):
+        super().__init__()
+        self._holder = holder
+        
+    def emit(self, context: Optional[object] = None) -> None:
+        # Return/Queue the buffers before stopping image acquisition:
+        while len(self._holder.buffers) > 0:
+            buffer = self._holder.buffers.pop(-1)
+            buffer.queue()
+
 def current_milli_time():
     return round(time.time() * 1000)
 
@@ -57,16 +90,16 @@ def display_color_image_if_available(color_component, name):
     
     # Reshape 1D array to 2D RGB image
     color_image = color_component.data.reshape(color_component.height, color_component.width, 3).copy()
-    max_value = np.amax(color_image)
-    print("Maximum value in color_image:", max_value)
+    # max_value = np.amax(color_image)
+    # print("Maximum value in color_image:", max_value)
     
     # Normalize array to range 0 - 65535
-    color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=max_value, norm_type=cv2.NORM_MINMAX)
+    color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
     cv2.imwrite("yyy_{0}.bmp".format(current_milli_time()), color_image)
     color_image = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
     img_write = color_image.copy()
     # Show image
-    cv2.imwrite("xxx_{0}.bmp".format(current_milli_time()), img_write)
+    cv2.imwrite("xxx_{0}.png".format(current_milli_time()), color_image)
     cv2.imshow(name, color_image)
     return
 
@@ -163,6 +196,14 @@ def freerun():
             #features.SendEventMap.value = True         # MotionCam-3D exclusive
             #features.SendColorCameraImage.value = True # MotionCam-3D Color exclusive
 
+    # Create a callback:
+            self.on_new_buffer_available = _OnNewBufferAvailable(
+                ia=self.ia, buffers=self._buffers
+            )
+            self.on_return_buffer_now = _OnReturnBufferNow(
+                holder=self.on_new_buffer_available
+            )
+            
             ia.start()
 
             with ia.fetch(timeout=10.0) as buffer:
@@ -183,8 +224,8 @@ def freerun():
                 
                 texture_rgb_component = payload.components[1]
                 display_color_image_if_available(texture_rgb_component, "TextureRGB")
-                color_image_component = payload.components[7]
-                display_color_image_if_available(color_image_component, "ColorCameraImage")
+                # color_image_component = payload.components[7]
+                # display_color_image_if_available(color_image_component, "ColorCameraImage")
 
                 point_cloud_component = payload.components[2]
                 norm_component = payload.components[3]

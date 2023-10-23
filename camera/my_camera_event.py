@@ -12,13 +12,54 @@ from camera.camera_func import*
 from camera.YCoCg import*
 from box.box import*
 
+from harvesters.core import Harvester
+from harvesters.core import ImageAcquirer
+from typing import Optional
+from harvesters.core import Callback
 
+
+class _OnNewBufferAvailable(Callback):
+    def __init__(self, ia: ImageAcquirer, buffers: list):
+        super().__init__()
+        print("====================> _OnNewBufferAvailable init")
+        self._ia = ia
+        self._buffers = buffers
+
+    def emit(self, context: Optional[object] = None) -> None:
+        print("====================> _OnNewBufferAvailable emit")
+        buffer = self._ia.fetch(timeout=10.0)
+        print("====================> _OnNewBufferAvailable emit1")
+        # self._buffers.append(buffer)
+        buffer.queue()
+        print("====================> _OnNewBufferAvailable emit2")
+        #isssue: it can't break here, infinitive here forever
+
+    @property
+    def buffers(self):
+        return self._buffers
+
+
+class _OnReturnBufferNow(Callback):
+    def __init__(self, holder: _OnNewBufferAvailable):
+        super().__init__()
+        print("====================> _OnReturnBufferNow init")
+        self._holder = holder
+        
+    def emit(self, context: Optional[object] = None) -> None:
+        # Return/Queue the buffers before stopping image acquisition:
+        print("====================> _OnReturnBufferNow emit1")
+        while len(self._holder.buffers) > 0:
+            print("====================> _OnReturnBufferNow emit2")
+            buffer = self._holder.buffers.pop(-1)
+            buffer.queue()
+            print("====================> _OnReturnBufferNow emit3")
 
 class My_Camera:
     def __init__(self, device_id, cam_wd, trig) -> None:
         self.point_cloud_component = None
         self.point_cloud = None
         self.cam_width = 0
+        self._buffers = []
 
         self.device_id = device_id
         self.trigger = trig
@@ -80,8 +121,27 @@ class My_Camera:
         self.features.SendDepthMap.value = False
         self.features.SendConfidenceMap.value = False
 
+
+        # Create a callback:
+        self.on_new_buffer_available = _OnNewBufferAvailable(
+            ia=self.cam, buffers=self._buffers
+        )
+        self.on_return_buffer_now = _OnReturnBufferNow(
+            holder=self.on_new_buffer_available
+        )
+
+        # event happened:
+        self.cam.add_callback(
+            ImageAcquirer.Events.NEW_BUFFER_AVAILABLE,
+            self.on_new_buffer_available
+        )
+        self.cam.add_callback(
+            ImageAcquirer.Events.RETURN_ALL_BORROWED_BUFFERS,
+            self.on_return_buffer_now
+        )
+
         #start camera
-        self.cam.start()
+        self.cam.start(run_as_thread=True)
     
     def trigger_camera(self):
         # Trigger frame by calling property's setter.
@@ -285,7 +345,7 @@ class My_Camera:
             # if self.receive_thread:
             #     self.receive_thread.join()
             # Remove all callbacks to not any callback work:
-            # self.cam.remove_callbacks()
+            self.cam.remove_callbacks()
             # self.cam.remove_callback(self.cam.Events.NEW_BUFFER_AVAILABLE)
             self.cam.stop()
             # self.cam.destroy()

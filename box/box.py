@@ -33,4 +33,6 @@ class BOX:
         }
 
     def to_json(self):
-        return json.dumps(self.to_dict(), indent=4)
+        xxx =  "\"boxData\":{0}".format(json.dumps(self.to_dict(), indent=4))
+        print(xxx)
+        return xxx

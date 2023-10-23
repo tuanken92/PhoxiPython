@@ -1,10 +1,15 @@
 {
     "server_ip": "127.0.0.1",
     "server_port": 8002,
+
+    "ftp_server": "127.0.0.1",
+    "ftp_user": "thh",
+    "ftp_pass": "thh@10",
+
     "api_key": "your_api_key_here",
 
-    "device_id": "PhotoneoTL_DEV_IDV-087",
-    "device_id2": "PhotoneoTL_DEV_farme_box",
+    "device_id1": "PhotoneoTL_DEV_IDV-087",
+    "device_id": "PhotoneoTL_DEV_farme_box",
     
     "trigger": "Software",
     "trigger1": "Freerun",
