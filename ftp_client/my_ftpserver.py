@@ -13,31 +13,31 @@ from pathlib import Path
 class My_FTPUpload:
     def __init__(self, fpt, user, port) -> None:
         self.session = ftplib.FTP(fpt,user,port)
-        
+        self.file_on_server = None
+
     def upload_file(self, file_path):
-        try:
-            
+        if True:
+            print(f'====> upload file: file path = {file_path}')
             #open file
             file = open(file_path,'rb')
             
             # get file name
             file_name = Path(file_path).stem
+            print(f'====> upload file: file name = {file_name}')
             
-            file_on_server = f'logistic/{file_name}.png'
+            self.file_on_server = f'logistic/{file_name}.png'
             # send the file
-            self.session.storbinary(f'STOR {file_on_server}', file)
+            self.session.storbinary(f'STOR {self.file_on_server}', file)
 
             #close file
             file.close()
 
-            print(f'====> upload file: file path = {file_path}')
-            print(f'====> upload file: file name = {file_name}')
-            print(f'====> upload file: file ftp = {file_on_server}')
-            return file_on_server
+            print(f'====> upload file: file ftp = {self.file_on_server}')
+            return self.file_on_server
 
-        except:
-            print(f"can't send file {file_on_server}")
-            return None
+        # except:
+        #     print(f"can't send file {self.file_on_server}")
+        #     return None
 
     def close_fpt(self):
         self.session.quit()

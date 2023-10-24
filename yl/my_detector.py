@@ -18,7 +18,7 @@ class My_Detector:
         self.load_model()
         self.imgsz=640
         self.conf=0.65
-        self.saved_file_detector = "detector.png"
+        self.saved_file_detector = "logo.jpg"
         
     def load_model(self):
         try:
@@ -124,9 +124,15 @@ class My_Detector:
                 
                 #save file
                 self.saved_file_detector = f'frame/detector_{current_milli_time()}.png'
-                cv2.imwrite(self.saved_file_detector, img)
+                is_saved_file = cv2.imwrite(self.saved_file_detector, img)
 
-                print("box get 3D", box_with_padding)
+                print("box get 3D = {0}, save file = {1}".format(box_with_padding, is_saved_file))
                 return box_with_padding
+            else:
+                #save file empty
+                #save file
+                self.saved_file_detector = f'frame/can_not_detector_{current_milli_time()}.png'
+                is_saved_file = cv2.imwrite(self.saved_file_detector, img)
+                print("saved file {0}= {1}".format(self.saved_file_detector, is_saved_file))
             return []
 

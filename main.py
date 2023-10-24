@@ -199,17 +199,18 @@ def process_message(message):
         
         #detect box
         conners = detector.predict_frame(frame)
-        
+        print(f"tuanna==============> detector.saved_file_detector = {detector.saved_file_detector}")
         #send file to ftp server
         ftp_file = ftp_client.upload_file(detector.saved_file_detector)
         if not ftp_file:
-            print("=====> can't upload file")
+            print("=====> upload file error")
 
         #get box data
         ftp_file = f"ftp://{ftp_server}/{ftp_file}"
         box_data = camera.box_calculation(conners, ftp_file)
         if box_data == None:
-            boxNG = Box()
+            boxNG = BOX()
+            boxNG.ImgURL = ftp_file
             client.send_data(boxNG.box_NG())
         else:
 
