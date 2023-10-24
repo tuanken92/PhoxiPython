@@ -3,12 +3,15 @@ from client.my_client import*
 from lib.mylib import*
 from camera.my_camera import*
 from yl.my_detector import*
+from ftp_client.my_ftpserver import*
+from box.box import*
 
 #variable
 enable_thread_tcp = False
 enable_thread_keyboard = False
 device_id = ""
 trigger = ""
+ftp_server = None #ftp server address
 
 #thread
 thTCPClient = None
@@ -20,12 +23,13 @@ client = None       #tcp client
 camera = None       #camera
 detector = None     #detector
 config = None       #config
+ftp_client = None   #ftp
 
 
 #fucntion
 
 def run_thread():
-    global client, camera, detector, config
+    global client, camera, detector, config, ftp_client
     global thTCPClient, thKeyboard
     global enable_thread_tcp
     global enable_thread_keyboard
@@ -45,8 +49,8 @@ def run_thread():
     thKeyboard.join()
 
 def init_proc():
-    global client, camera, detector, config
-    global thTCPClient, thKeyboard
+    global client, camera, detector, config, ftp_client
+    global thTCPClient, thKeyboard, ftp_server
     global enable_thread_tcp
     global enable_thread_keyboard
     global device_id, trigger
@@ -57,22 +61,31 @@ def init_proc():
     config = read_config(config_filename)
 
     if config:
+        #server
         server_ip = config.get("server_ip")
         server_port = config.get("server_port")
-        api_key = config.get("api_key")
 
+        #fpt server
+        ftp_server = config.get("ftp_server")
+        ftp_user = config.get("ftp_user")
+        ftp_pass = config.get("ftp_pass")
+
+
+        #debug mode
         debug_mode = config.get("debug_mode")
 
+        #camera
         device_id = config.get("device_id")
         trigger = config.get("trigger")
-        
         cam_wd = config.get("cam_working_distance")
 
+
+        #model DL
         model_path = config.get("model_path")
 
         print(f"Server IP: {server_ip}")
         print(f"Server Port: {server_port}")
-        print(f"API Key: {api_key}")
+
         print(f"Debug Mode: {debug_mode}")
         print(f"device_id: {device_id}, WD = {cam_wd}, trigger = {trigger}")
         print(f"model_path: {model_path}")
@@ -90,6 +103,9 @@ def init_proc():
     is_connected = camera.connect()
     print("Is connected to camera {0} = {1}".format(device_id, is_connected))
 
+    #ftp
+    ftp_client = My_FTPUpload(ftp_server, ftp_user, ftp_pass)
+    
     #detector
     detector = My_Detector(model_path)
 
@@ -154,7 +170,7 @@ def process_keyboard():
 
 def process_message(message):
     global client, camera, detector, config
-    global thTCPClient, thKeyboard
+    global thTCPClient, thKeyboard, ftp_server
     global enable_thread_tcp
     global enable_thread_keyboard
     global device_id, trigger
@@ -174,18 +190,29 @@ def process_message(message):
     elif message == 't':
         #get frame from camera
         frame = camera.trigger_camera()
-        print("1---->frame data = ", frame.shape)
-        #detect conner
-        file_name_debug = "fr_current.bmp"
-        b = cv2.imwrite(file_name_debug, frame)
-        print("2----->connner begin, frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
+
+        # print("1---->frame data = ", frame.shape)
+        # #detect conner
+        # file_name_debug = "fr_current.bmp"
+        # b = cv2.imwrite(file_name_debug, frame)
+        # print("2----->connner begin, frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
         
         #detect box
         conners = detector.predict_frame(frame)
-        box_data = camera.box_calculation(conners)
+        
+        #send file to ftp server
+        ftp_file = ftp_client.upload_file(detector.saved_file_detector)
+        if not ftp_file:
+            print("=====> can't upload file")
+
+        #get box data
+        ftp_file = f"ftp://{ftp_server}/{ftp_file}"
+        box_data = camera.box_calculation(conners, ftp_file)
         if box_data == None:
-            pass
+            boxNG = Box()
+            client.send_data(boxNG.box_NG())
         else:
+
             client.send_data(box_data)
         
     elif message == ' ':
@@ -213,3 +240,4 @@ if __name__ == '__main__':
     #close all connection
     camera.close()
     client.close()
+    ftp_client.close_fpt()

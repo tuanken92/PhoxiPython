@@ -237,7 +237,7 @@ class My_Camera:
             print(f"exception: Connect to camera error, check connection....!")
         return self.is_connected
 
-    def box_calculation(self, conners):
+    def box_calculation(self, conners, ftp_link):
         print("conners", conners)
         print("conners type", type(conners))
         if len(conners) == 0:
@@ -261,6 +261,7 @@ class My_Camera:
         box.height = z
         box.width = h
         box.length = w
+        box.ImgURL = ftp_link
         return box.to_json()
 
     def getPointCloud(self, y, x):

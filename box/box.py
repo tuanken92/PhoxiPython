@@ -18,8 +18,8 @@ class BOX:
         self.length = 0.0
 
         self.Name = "box"
-        self.Message = "OK"
-        self.ImgURL = "ftp://192.168.100.111/logistics/box_dim.jpg"
+        self.Message = "NG"
+        self.ImgURL = ""
         
     def to_dict(self):
         # Create a dictionary representing the object's attributes
@@ -33,6 +33,11 @@ class BOX:
         }
 
     def to_json(self):
+        xxx =  "\"boxData\":{0}".format(json.dumps(self.to_dict(), indent=4))
+        print(xxx)
+        return xxx
+
+    def box_NG(self):
         xxx =  "\"boxData\":{0}".format(json.dumps(self.to_dict(), indent=4))
         print(xxx)
         return xxx

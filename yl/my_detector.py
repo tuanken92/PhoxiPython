@@ -18,6 +18,7 @@ class My_Detector:
         self.load_model()
         self.imgsz=640
         self.conf=0.65
+        self.saved_file_detector = "detector.png"
         
     def load_model(self):
         try:
@@ -51,18 +52,14 @@ class My_Detector:
         if not self.loaded:
             print(f"Model not yet load, please load model and try again....")
             return []
-        #try:
+
         # Make predictions
         t1 = current_milli_time()
         print("-------->start predict, frame shape = {0}".format(frame.shape))
-        print("img.shape", frame.shape)
-        print("img.shape", type(frame))
         results = self.model.predict(frame, save=False, imgsz=self.imgsz, conf=self.conf)
-        print("--------->finnished, take {0} ms, resutl = {1}".format(current_milli_time() - t1, len(results)))
+        print("--------->finnished, took {0} ms, number result = {1}".format(current_milli_time() - t1, len(results)))
         return self.get_4points(results, frame)
-    #except:
-        #print(f"Can't predict")
-        return None
+
 
     def predict(self, source):
             if not self.loaded:
@@ -124,7 +121,10 @@ class My_Detector:
                 print("box", box)
                 cv2.drawContours(img, [box], 0, color, tl)
                 cv2.drawContours(img, [box_with_padding], 0, (0,255,0), tl)
-                cv2.imwrite("detector_hehe.png", img)
+                
+                #save file
+                self.saved_file_detector = f'frame/detector_{current_milli_time()}.png'
+                cv2.imwrite(self.saved_file_detector, img)
 
                 print("box get 3D", box_with_padding)
                 return box_with_padding
