@@ -193,14 +193,18 @@ def process_message(message):
 
         # print("1---->frame data = ", frame.shape)
         # #detect conner
-        # file_name_debug = "fr_current.bmp"
-        # b = cv2.imwrite(file_name_debug, frame)
-        # print("2----->connner begin, frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
+        file_name_debug = "fr_current.bmp"
+        b = cv2.imwrite(file_name_debug, frame)
+        print("----->save frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
         
         #detect box
         conners = detector.predict_frame(frame)
+        print(f'conners = {conners}, type conner = {type(conners)}')
         print(f"tuanna==============> detector.saved_file_detector = {detector.saved_file_detector}")
         #send file to ftp server
+        if conners.size == 0:
+            detector.saved_file_detector = "logo.jpg"
+
         ftp_file = ftp_client.upload_file(detector.saved_file_detector)
         if not ftp_file:
             print("=====> upload file error")

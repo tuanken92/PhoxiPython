@@ -51,12 +51,12 @@ class My_Detector:
     def predict_frame(self, frame):
         if not self.loaded:
             print(f"Model not yet load, please load model and try again....")
-            return []
+            return np.array([])
 
         # Make predictions
         t1 = current_milli_time()
         print("-------->start predict, frame shape = {0}".format(frame.shape))
-        results = self.model.predict(frame, save=False, imgsz=self.imgsz, conf=self.conf)
+        results = self.model.predict(frame, save=True, imgsz=self.imgsz, conf=self.conf)
         print("--------->finnished, took {0} ms, number result = {1}".format(current_milli_time() - t1, len(results)))
         return self.get_4points(results, frame)
 
@@ -88,7 +88,7 @@ class My_Detector:
             if masks is not None:
                 n_points = masks.xy
             else:
-                return []
+                return np.array([])
             
             mask = np.array(n_points, np.int32)
             #print("mask",mask)
@@ -134,5 +134,5 @@ class My_Detector:
                 self.saved_file_detector = f'frame/can_not_detector_{current_milli_time()}.png'
                 is_saved_file = cv2.imwrite(self.saved_file_detector, img)
                 print("saved file {0}= {1}".format(self.saved_file_detector, is_saved_file))
-            return []
+            return np.array([])
 

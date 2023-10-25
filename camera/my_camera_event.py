@@ -156,7 +156,7 @@ class My_Camera:
         with self.cam.fetch(timeout=10.0) as buffer:
             # grab first frame
             # do something with first frame
-            print("buffer = ",buffer)
+            # print("buffer = ",buffer)
 
             # The buffer object will automatically call its dto once it goes
             # out of scope and releases internal buffer object.
@@ -164,7 +164,7 @@ class My_Camera:
             self.point_cloud_component = payload.components[2]
             self.cam_width = self.point_cloud_component.width
             self.point_cloud = self.point_cloud_component.data.reshape(self.point_cloud_component.height * self.point_cloud_component.width, 3).copy()
-            self.getPointCloud(451,118)
+            # self.getPointCloud(451,118)
 
             #text ture 
             #texture_component = payload.components[0]

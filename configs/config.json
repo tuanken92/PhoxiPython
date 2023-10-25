@@ -1,5 +1,5 @@
 {
-    "server_ip1": "192.168.1.33",
+    "server_ip1": "192.168.1.104",
     "server_ip": "127.0.0.1",
     "server_port": 8002,
 
@@ -8,9 +8,9 @@
     "ftp_pass": "gachick@10",
 
 
-    "device_id1": "PhotoneoTL_DEV_IDV-087",
+    "device_id": "PhotoneoTL_DEV_IDV-087",
     "device_id2": "PhotoneoTL_DEV_InstalledExamples-color-example",
-    "device_id": "PhotoneoTL_DEV_farme_box",
+    "device_id3": "PhotoneoTL_DEV_farme_box",
     
     "trigger": "Software",
     "trigger1": "Freerun",
