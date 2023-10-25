@@ -18,5 +18,13 @@
 
     "cam_working_distance": 880.0,
     "debug_mode": true,
-    "model_path": "../model/mother_of_best.pt"
+
+    "model_path1": "../model/mother_of_best.pt",
+    "model_path": "../model/best21.pt",
+    "saved": true,
+    "score": 0.75,
+    "img_size": 640,
+
+    "offset_w": -10,
+    "offset_h": -10
 }

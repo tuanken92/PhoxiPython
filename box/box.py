@@ -9,7 +9,6 @@ import sys
 from sys import platform
 from harvesters.core import Harvester
 from camera.camera_func import*
-from camera.YCoCg import*
 
 class BOX:
     def __init__(self) -> None:

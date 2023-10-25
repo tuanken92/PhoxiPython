@@ -3,6 +3,28 @@ import json
 import math
 from datetime import datetime
 
+
+class Detector_Param():
+    def __init__(self, model, img_size, conf, saved, offset_width, offset_height) -> None:
+        self.model_path = model
+        self.imgsz = img_size
+        self.conf = conf
+        self.saved_img = saved
+        self.offset_width = offset_width
+        self.offset_height = offset_height
+
+    def print_info(self):
+        print("----------Detector Param-----------")
+        print(f"model_path = {self.model_path}")
+        print(f"img_size = {self.imgsz}")
+        print(f"conf = {self.conf}")
+        print(f"saved image = {self.saved_img}")
+        print(f"offset_width = {self.offset_width}")
+        print(f"offset_height = {self.offset_height}")
+        print("----------Detector Param done-----------")
+
+        
+
 def current_milli_time():
     return round(time.time() * 1000)
 

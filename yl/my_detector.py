@@ -12,20 +12,18 @@ DNNRESULT = namedtuple("DetResult",
                        defaults=5*[None])
 
 class My_Detector:
-    def __init__(self, model_path) -> None:
-        self.model_path = model_path
+    def __init__(self, detector_param:Detector_Param) -> None:
+        self.param = detector_param
         self.loaded = False
         self.load_model()
-        self.imgsz=640
-        self.conf=0.65
         self.saved_file_detector = "logo.jpg"
         
     def load_model(self):
         try:
             # Load a model
             t1 = current_milli_time()
-            print(f"Begin load model {self.model_path}...")
-            self.model = YOLO(self.model_path)  # pretrained YOLOv8n model
+            print(f"Begin load model {self.param.model_path}...")
+            self.model = YOLO(self.param.model_path)  # pretrained YOLOv8n model
             self.model.predict(np.zeros((640, 640, 3), dtype=np.uint8))
             print("Loaded model, it tool {0} ms".format(current_milli_time() - t1))
             self.loaded = True
@@ -41,7 +39,7 @@ class My_Detector:
             # Make predictions
             t1 = current_milli_time()
             print("start predict {0}".format(source))
-            results = self.model.predict(source, save=False, imgsz=self.imgsz, conf=self.conf)
+            results = self.model.predict(source, save=self.param.saved_img, imgsz=self.param.imgsz, conf=self.param.conf)
             print("--------->finnished, take {0} ms".format(current_milli_time() - t1))
             print(results[0])
             return results
@@ -56,7 +54,7 @@ class My_Detector:
         # Make predictions
         t1 = current_milli_time()
         print("-------->start predict, frame shape = {0}".format(frame.shape))
-        results = self.model.predict(frame, save=True, imgsz=self.imgsz, conf=self.conf)
+        results = self.model.predict(frame, save=self.param.saved_img, imgsz=self.param.imgsz, conf=self.param.conf)
         print("--------->finnished, took {0} ms, number result = {1}".format(current_milli_time() - t1, len(results)))
         return self.get_4points(results, frame)
 
@@ -72,7 +70,7 @@ class My_Detector:
                 img = cv2.imread(source)
                 print("img.shape", img.shape)
                 print("img.shape", type(img))
-                results = self.model.predict(img, save=False, imgsz=self.imgsz, conf=self.conf)
+                results = self.model.predict(img, save=self.param.saved_img, imgsz=self.param.imgsz, conf=self.param.conf)
                 print("--------->finnished, take {0} ms, resutl = {1}".format(current_milli_time() - t1, len(results)))
                 self.get_4points(results, img)
                 return results
@@ -95,7 +93,8 @@ class My_Detector:
             #print("mask",mask.shape)
             
 
-            if mask is not None:
+            #if mask is not None:
+            if mask.size != 0:
                 #drawing
                 image_with_mask = img.copy()
                 color = [random.randint(0, 255) for _ in range(3)]
@@ -108,9 +107,10 @@ class My_Detector:
 
                 center, (width, height), angle = rect
                 # Add padding (in pixels) to the width and height
-                padding = -20  # Adjust this value as needed
-                width += 2 * padding
-                height += 2 * padding
+                #padding = -20  # Adjust this value as needed
+                
+                width += 2 * self.param.offset_width
+                height += 2 * self.param.offset_height
 
                 # Recreate the rectangle with padding
                 rect_with_padding = ((center[0], center[1]), (width, height), angle)

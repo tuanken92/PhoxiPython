@@ -18,6 +18,7 @@ thTCPClient = None
 thKeyboard = None
 
 #instance
+detector_param = None
 
 client = None       #tcp client
 camera = None       #camera
@@ -29,7 +30,7 @@ ftp_client = None   #ftp
 #fucntion
 
 def run_thread():
-    global client, camera, detector, config, ftp_client
+    global client, camera, detector, detector_param, config, ftp_client
     global thTCPClient, thKeyboard
     global enable_thread_tcp
     global enable_thread_keyboard
@@ -49,7 +50,7 @@ def run_thread():
     thKeyboard.join()
 
 def init_proc():
-    global client, camera, detector, config, ftp_client
+    global client, camera, detector, detector_param, config, ftp_client
     global thTCPClient, thKeyboard, ftp_server
     global enable_thread_tcp
     global enable_thread_keyboard
@@ -82,13 +83,21 @@ def init_proc():
 
         #model DL
         model_path = config.get("model_path")
+        score = config.get("score")
+        saved = config.get("saved")
+        img_size = config.get("img_size")
+        offset_w = config.get("offset_w")
+        offset_h = config.get("offset_h")
+        detector_param = Detector_Param(model_path, img_size, score, 
+                                        saved, offset_w, offset_h)
 
         print(f"Server IP: {server_ip}")
         print(f"Server Port: {server_port}")
 
         print(f"Debug Mode: {debug_mode}")
         print(f"device_id: {device_id}, WD = {cam_wd}, trigger = {trigger}")
-        print(f"model_path: {model_path}")
+        detector_param.print_info()
+        
     else:
         print("Configuration not loaded. Check your JSON file or path.")
 
@@ -107,7 +116,7 @@ def init_proc():
     ftp_client = My_FTPUpload(ftp_server, ftp_user, ftp_pass)
     
     #detector
-    detector = My_Detector(model_path)
+    detector = My_Detector(detector_param)
 
     #enable thread
     enable_thread_keyboard = True
