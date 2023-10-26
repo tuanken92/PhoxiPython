@@ -5,38 +5,27 @@ from camera.my_camera import*
 from yl.my_detector import*
 from ftp_client.my_ftpserver import*
 from box.box import*
+import my_param
 
 #variable
 enable_thread_tcp = False
 enable_thread_keyboard = False
-device_id = ""
-trigger = ""
-ftp_server = None #ftp server address
 
 #thread
 thTCPClient = None
 thKeyboard = None
 
 #instance
-detector_param = None
-
-client = None       #tcp client
-camera = None       #camera
-detector = None     #detector
-config = None       #config
-ftp_client = None   #ftp
+client:My_Client = None       #tcp client
+camera:My_Camera = None       #camera
+detector:My_Detector = None     #detector
+ftp_client:My_FTPUpload = None   #ftp
 
 
 #fucntion
 
 def run_thread():
-    global client, camera, detector, detector_param, config, ftp_client
     global thTCPClient, thKeyboard
-    global enable_thread_tcp
-    global enable_thread_keyboard
-    global device_id
-
-
 
     thTCPClient = threading.Thread(target=process_cam_by_tcpip)
     thKeyboard = threading.Thread(target=process_keyboard)
@@ -50,86 +39,44 @@ def run_thread():
     thKeyboard.join()
 
 def init_proc():
-    global client, camera, detector, detector_param, config, ftp_client
-    global thTCPClient, thKeyboard, ftp_server
+    global client, camera, detector, ftp_client
     global enable_thread_tcp
     global enable_thread_keyboard
-    global device_id, trigger
-
-
-    t1 = current_milli_time()
-    config_filename = 'configs/config.json' 
-    config = read_config(config_filename)
-
-    if config:
-        #server
-        server_ip = config.get("server_ip")
-        server_port = config.get("server_port")
-
-        #fpt server
-        ftp_server = config.get("ftp_server")
-        ftp_user = config.get("ftp_user")
-        ftp_pass = config.get("ftp_pass")
-
-
-        #debug mode
-        debug_mode = config.get("debug_mode")
-
-        #camera
-        device_id = config.get("device_id")
-        trigger = config.get("trigger")
-        cam_wd = config.get("cam_working_distance")
-
-
-        #model DL
-        model_path = config.get("model_path")
-        score = config.get("score")
-        saved = config.get("saved")
-        img_size = config.get("img_size")
-        offset_w = config.get("offset_w")
-        offset_h = config.get("offset_h")
-        detector_param = Detector_Param(model_path, img_size, score, 
-                                        saved, offset_w, offset_h)
-
-        print(f"Server IP: {server_ip}")
-        print(f"Server Port: {server_port}")
-
-        print(f"Debug Mode: {debug_mode}")
-        print(f"device_id: {device_id}, WD = {cam_wd}, trigger = {trigger}")
-        detector_param.print_info()
-        
-    else:
-        print("Configuration not loaded. Check your JSON file or path.")
-
-
-    #client
-    client = My_Client(server_ip, server_port)
-    client.connect()
-
-    #camera
-    camera = My_Camera(device_id, cam_wd, trigger)
-    camera.find_camera()
-    is_connected = camera.connect()
-    print("Is connected to camera {0} = {1}".format(device_id, is_connected))
-
-    #ftp
-    ftp_client = My_FTPUpload(ftp_server, ftp_user, ftp_pass)
-    
-    #detector
-    detector = My_Detector(detector_param)
 
     #enable thread
     enable_thread_keyboard = True
     enable_thread_tcp = True
 
-    print("finish init program, took {0} ms".format(current_milli_time() - t1))
+    #get current time
+    t_start = current_milli_time()
+    
+    #load parameter from file
+    my_param.load_param_from_config()
+
+    #client
+    client = My_Client(my_param.client_param)
+    client.connect()
+    
+    #ftp
+    ftp_client = My_FTPUpload(my_param.ftp_param)
+
+    #camera
+    camera = My_Camera(my_param.camera_param, ftp_client)
+    camera.find_camera()
+    is_connected = camera.connect()
+    print("Is connected to camera {0} = {1}".format(my_param.camera_param.device_id, is_connected))
+
+    
+    #detector
+    detector = My_Detector(my_param.detector_param)
+
+    print("finish init program, took {0} ms".format(current_milli_time() - t_start))
+
+
 
 def process_cam_by_tcpip():
-    global client, camera, detector, config
-    global thTCPClient, thKeyboard
+    global client
     global enable_thread_tcp
-    global enable_thread_keyboard
-    global device_id, trigger
 
 
     print(f"===========start thread tcp-client============")
@@ -163,13 +110,6 @@ def process_cam_by_tcpip():
 
 
 def process_keyboard():
-    global client, camera, detector, config
-    global thTCPClient, thKeyboard
-    global enable_thread_tcp
-    global enable_thread_keyboard
-    global device_id, trigger
-
-
     print(f"===========start thread keyboard============")
     while enable_thread_keyboard:
         message = input("Enter a message to send (or 'q' to quit): ")
@@ -177,12 +117,13 @@ def process_keyboard():
 
     print(f"===========finish thread keyboard============")
 
+
+
 def process_message(message):
-    global client, camera, detector, config
-    global thTCPClient, thKeyboard, ftp_server
+    global client, camera, detector
+    global thTCPClient, thKeyboard
     global enable_thread_tcp
     global enable_thread_keyboard
-    global device_id, trigger
 
 
     print(f"===========data = {message}============")
@@ -193,8 +134,9 @@ def process_message(message):
         return
 
     if message == 'r':
+        camera.find_camera()
         is_connected = camera.connect()
-        print("Is connected to camera {0} = {1}".format(device_id, is_connected))
+        print("Is connected to camera {0} = {1}".format(my_param.camera_param.device_id, is_connected))
 
     elif message == 't':
         #get frame from camera
@@ -207,26 +149,20 @@ def process_message(message):
         print("----->save frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
         
         #detect box
-        conners = detector.predict_frame(frame)
-        print(f'conners = {conners}, type conner = {type(conners)}')
-        print(f"tuanna==============> detector.saved_file_detector = {detector.saved_file_detector}")
-        #send file to ftp server
-        if conners.size == 0:
-            detector.saved_file_detector = "logo.jpg"
-
-        ftp_file = ftp_client.upload_file(detector.saved_file_detector)
-        if not ftp_file:
-            print("=====> upload file error")
+        results = detector.predict_frame(frame)
+        
+        # ftp_file = ftp_client.upload_file(detector.saved_file_detector)
+        # if not ftp_file:
+            # print("=====> upload file error")
 
         #get box data
-        ftp_file = f"ftp://{ftp_server}/{ftp_file}"
-        box_data = camera.box_calculation(conners, ftp_file)
+        # ftp_file = f"ftp://{my_param.ftp_param.ftp_server}/{ftp_file}"
+        box_data = camera.box_calculation2(results, detector.label_map)
         if box_data == None:
             boxNG = BOX()
-            boxNG.ImgURL = ftp_file
+            # boxNG.ImgURL = ftp_file
             client.send_data(boxNG.box_NG())
         else:
-
             client.send_data(box_data)
         
     elif message == ' ':

@@ -6,11 +6,13 @@
     "ftp_server": "127.0.0.1",
     "ftp_user": "thh",
     "ftp_pass": "gachick@10",
+    "ftp_dir": "logistic",
+    
 
 
-    "device_id": "PhotoneoTL_DEV_IDV-087",
+    "device_id1": "PhotoneoTL_DEV_IDV-087",
     "device_id2": "PhotoneoTL_DEV_InstalledExamples-color-example",
-    "device_id3": "PhotoneoTL_DEV_farme_box",
+    "device_id": "PhotoneoTL_DEV_farme_box",
     
     "trigger": "Software",
     "trigger1": "Freerun",
@@ -21,8 +23,9 @@
 
     "model_path1": "../model/mother_of_best.pt",
     "model_path": "../model/best21.pt",
+    "label_path": "configs/label.yaml",
     "saved": true,
-    "score": 0.75,
+    "score": 0.3,
     "img_size": 640,
 
     "offset_w": -10,

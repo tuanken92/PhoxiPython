@@ -1,31 +1,36 @@
 import socket
 import threading
 import numpy as np
+
 #import open3d as o3d
 import cv2
 import os
 import sys
+import my_param
 
 from sys import platform
 from harvesters.core import Harvester
 from camera.camera_func import*
 from box.box import*
-
-
+from vision_dl.drawing import*
+from camera.cam_param import*
+from ftp_client.my_ftpserver import*
 
 class My_Camera:
-    def __init__(self, device_id, cam_wd, trig) -> None:
+    def __init__(self, camera_param:Cam_Param, ftp_client:My_FTPUpload) -> None:
         self.point_cloud_component = None
         self.point_cloud = None
         self.cam_width = 0
 
-        self.device_id = device_id
-        self.trigger = trig
-        self.cam_working_distance = cam_wd
+        #ftp client
+        self.ftp_client = ftp_client
+
+        self.cam_param = camera_param
         self.cam = None
         self.cam_feature = None
         self.is_connected = False
-        
+        self.is_found_cam = False
+        self.my_frame = None
         #thread
         self.process_thread = None
 
@@ -43,12 +48,15 @@ class My_Camera:
 
     def find_camera(self):
         self.h.update()
+        self.is_found_cam = False
         # Print out available devices
         print()
         print("Name : ID")
         print("---------")
         for item in self.h.device_info_list:
             print(item.property_dict['serial_number'], ' : ', item.property_dict['id_'])
+            if self.cam_param.device_id == item.property_dict['id_']:
+                self.is_found_cam = True
         print()
 
 
@@ -56,7 +64,7 @@ class My_Camera:
     def configure_camera(self):
         #print(dir(features))
         print("TriggerMode BEFORE: ", self.features.PhotoneoTriggerMode.value)
-        self.features.PhotoneoTriggerMode.value = self.trigger
+        self.features.PhotoneoTriggerMode.value = self.cam_param.trigger_mode
         print("TriggerMode AFTER: ", self.features.PhotoneoTriggerMode.value)
 
         # Order is fixed on the selected output structure. Disabled fields are shown as empty components.
@@ -110,7 +118,8 @@ class My_Camera:
             #display_texture_if_available(texture_component)
             
             texture_rgb_component = payload.components[1]
-            return get_texture(texture_rgb_component, "TextureRGB")
+            self.my_frame = get_texture(texture_rgb_component, "TextureRGB")
+            return self.my_frame
             
 
     def cvt_color(self, color_component, name):
@@ -162,9 +171,9 @@ class My_Camera:
             # display_pointcloud_if_available(point_cloud_component, norm_component, texture_component, texture_rgb_component)
 
     def connect(self):
-        if True:
+        if self.is_found_cam:
             #connect cam with ID
-            self.cam = self.h.create({'id_': self.device_id})
+            self.cam = self.h.create({'id_': self.cam_param.device_id})
             print(self.cam.Events.__members__)
             
             self.features = self.cam.remote_device.node_map
@@ -210,8 +219,107 @@ class My_Camera:
         box.Message = "OK"
         box.ImgURL = ftp_link
         return box.to_json()
+        
+    def box_ng(self):
+        #upload current frame
+        ftp_local_path = f"ftp://{my_param.ftp_param.ftp_server}/logo.jpg"
+        img_url = self.ftp_client.upload_file(ftp_local_path)
+        #format box ng
+        box = BOX()
+        box.Name = "BOX"
+        box.Message = "NG"
+        box.ImgURL = img_url
+        data = (box.to_json())
+        return data
 
-    def getPointCloud(self, y, x):
+    def box_ok(self, result:DNNRESULT, label_map:dict):
+        nc = len(label_map)
+        colors = np.random.uniform(0, 255, size=(nc, 3))
+        mat = plot_results(result, self.my_frame, label_map=label_map, colors=colors)
+
+        #upload current frame
+        file_name = f'frame_{current_milli_time()}.png'
+        img_url = self.ftp_client.upload_frame(mat, file_name)
+
+        #format box ng
+        box = BOX()
+        box.Name = label_map[result.class_index]
+        box.Message = "NG"
+        box.ImgURL = img_url
+        data = (box.to_json())
+        return data
+
+    def box_calculation2(self, results, label_map:dict):
+        """
+        results: list DNNRESULT("class_index", "box", "mask", "conf",...)
+        """
+        if len(results) == 0:
+            return self.box_ng()
+
+        result:DNNRESULT = None
+
+        #filter bbox in frame
+        results_in_frame = []
+        for index, result in enumerate(results):
+            rect_offset = result.rect_offset
+            box_with_padding = cv2.boxPoints(rect_offset).astype(np.uintp)
+            is_ok = True
+            for conner in box_with_padding:
+                x,y = conner
+                if x >= self.point_cloud_component.width or y>=self.point_cloud_component.height:
+                    is_ok = False
+                    print(f"Ignore index {index}, data = {box_with_padding}")
+                    break
+            if is_ok:
+                print(f"Add index {index}, data = {box_with_padding}")
+                results_in_frame.append(result)
+        #print(results_in_frame)
+        if len(results_in_frame) == 0:
+            print("============== No Box, send box NG and return=================")
+            return self.box_ng()
+
+        #filter bbox with max confidence in frame
+        result_max_conf:DNNRESULT = None
+        max_confident = 0.0
+        for index, result in enumerate(results_in_frame):
+            conf = result.conf
+            if conf >= max_confident:
+                result_max_conf = result
+                print(f"===========Update conf max = {conf}")
+
+        #print(result_max_conf)
+        if result_max_conf == None:
+            return self.box_ng()
+
+        #get box dimension from conner
+        rect_offset = result_max_conf.rect_offset
+        conners = cv2.boxPoints(rect_offset).astype(np.uintp)
+        p =[]
+        for conner in conners:
+            x,y=conner
+            p.append(self.getPointCloud(y,x))
+        
+        #get distance from p2p
+        w = p2p(p[0], p[1])
+        h = p2p(p[1], p[2])
+        z = get_high_average(p[0], p[1], p[2], p[3], self.cam_param.cam_wd)
+        box_dim = [w, h, z]
+        finnal_result = result_max_conf._replace(rect_dim=box_dim)
+        print(f'result_max_conf = {result_max_conf}')
+        print(f'finnal_result = {finnal_result}')
+        
+        # print(f"box dim = {w},{h},{z}")
+
+        # box = BOX()
+        # box.Name = label_map[result_max_conf.class_index]
+        # box.height = z
+        # box.width = h
+        # box.length = w
+        # box.Message = "OK"
+        # data = (box.to_json())
+        return self.box_ok(finnal_result,label_map)
+
+    def getPointCloud(self, y:int, x:int):
         #convert point cloud
         
         print("pointcloud shape = {0}".format(self.point_cloud.shape))
