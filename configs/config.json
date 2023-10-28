@@ -1,6 +1,6 @@
 {
-    "server_ip1": "192.168.1.104",
-    "server_ip": "127.0.0.1",
+    "server_ip": "192.168.1.142",
+    "server_ip1": "127.0.0.1",
     "server_port": 8002,
 
     "ftp_server": "127.0.0.1",
@@ -10,24 +10,24 @@
     
 
 
-    "device_id1": "PhotoneoTL_DEV_IDV-087",
+    "device_id": "PhotoneoTL_DEV_IDV-087",
     "device_id2": "PhotoneoTL_DEV_InstalledExamples-color-example",
-    "device_id": "PhotoneoTL_DEV_farme_box",
+    "device_id3": "PhotoneoTL_DEV_farme_box",
     
     "trigger": "Software",
     "trigger1": "Freerun",
     
 
-    "cam_working_distance": 880.0,
+    "cam_working_distance": 990.0,
     "debug_mode": true,
 
     "model_path1": "../model/mother_of_best.pt",
     "model_path": "../model/best21.pt",
     "label_path": "configs/label.yaml",
-    "saved": true,
+    "saved": false,
     "score": 0.3,
     "img_size": 640,
 
-    "offset_w": -10,
-    "offset_h": -10
+    "offset_w": -15,
+    "offset_h": -15
 }

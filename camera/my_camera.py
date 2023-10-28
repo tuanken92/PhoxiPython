@@ -103,7 +103,7 @@ class My_Camera:
         with self.cam.fetch(timeout=10.0) as buffer:
             # grab first frame
             # do something with first frame
-            print("buffer = ",buffer)
+            # print("buffer = ",buffer)
 
             # The buffer object will automatically call its dto once it goes
             # out of scope and releases internal buffer object.
@@ -111,7 +111,7 @@ class My_Camera:
             self.point_cloud_component = payload.components[2]
             self.cam_width = self.point_cloud_component.width
             self.point_cloud = self.point_cloud_component.data.reshape(self.point_cloud_component.height * self.point_cloud_component.width, 3).copy()
-            self.getPointCloud(451,118)
+            #self.getPointCloud(451,118)
 
             #text ture 
             #texture_component = payload.components[0]
@@ -222,7 +222,7 @@ class My_Camera:
         
     def box_ng(self):
         #upload current frame
-        ftp_local_path = f"ftp://{my_param.ftp_param.ftp_server}/logo.jpg"
+        ftp_local_path = "logo.jpg"
         img_url = self.ftp_client.upload_file(ftp_local_path)
         #format box ng
         box = BOX()
@@ -233,20 +233,32 @@ class My_Camera:
         return data
 
     def box_ok(self, result:DNNRESULT, label_map:dict):
+        t1 = current_milli_time()
         nc = len(label_map)
         colors = np.random.uniform(0, 255, size=(nc, 3))
-        mat = plot_results(result, self.my_frame, label_map=label_map, colors=colors)
-
+        mat = plot_results([result], self.my_frame, label_map=label_map, colors=colors)
+        mat = self.my_frame
+        # mat = cv2.resize(mat, (640,480))
         #upload current frame
-        file_name = f'frame_{current_milli_time()}.png'
-        img_url = self.ftp_client.upload_frame(mat, file_name)
+        file_name = f'frame/frame_{current_milli_time()}.png'
+        is_saved_file = cv2.imwrite(file_name, mat)
+        if not is_saved_file:
+            print("==========> save file NG===========>")
+            return self.box_ng()
+
+        img_url = self.ftp_client.upload_file(file_name)
 
         #format box ng
         box = BOX()
         box.Name = label_map[result.class_index]
-        box.Message = "NG"
+        box.Message = "OK"
+        box.width = result.rect_dim[0]      #w
+        box.length = result.rect_dim[1]     #h
+        box.height = result.rect_dim[2]     #z
         box.ImgURL = img_url
         data = (box.to_json())
+        t2 = current_milli_time() -t1
+        print("============== total box OK = {0} ms=================".format(current_milli_time() -t1))
         return data
 
     def box_calculation2(self, results, label_map:dict):
@@ -259,8 +271,9 @@ class My_Camera:
         result:DNNRESULT = None
 
         #filter bbox in frame
+        t1 = current_milli_time()
         results_in_frame = []
-        for index, result in enumerate(results):
+        for result in results:
             rect_offset = result.rect_offset
             box_with_padding = cv2.boxPoints(rect_offset).astype(np.uintp)
             is_ok = True
@@ -268,12 +281,14 @@ class My_Camera:
                 x,y = conner
                 if x >= self.point_cloud_component.width or y>=self.point_cloud_component.height:
                     is_ok = False
-                    print(f"Ignore index {index}, data = {box_with_padding}")
+                    # print(f"Ignore index {index}, data = {box_with_padding}")
                     break
             if is_ok:
-                print(f"Add index {index}, data = {box_with_padding}")
+                # print(f"Add index {index}, data = {box_with_padding}")
                 results_in_frame.append(result)
         #print(results_in_frame)
+        t2 = current_milli_time()
+        # print("============== filter1 = {0} ms=================".format(current_milli_time() -t1))
         if len(results_in_frame) == 0:
             print("============== No Box, send box NG and return=================")
             return self.box_ng()
@@ -281,14 +296,17 @@ class My_Camera:
         #filter bbox with max confidence in frame
         result_max_conf:DNNRESULT = None
         max_confident = 0.0
-        for index, result in enumerate(results_in_frame):
+        for result in results_in_frame:
             conf = result.conf
             if conf >= max_confident:
+                max_confident = conf
                 result_max_conf = result
-                print(f"===========Update conf max = {conf}")
-
+                # print(f"===========Update conf max = {conf}")
+        t3 = current_milli_time()
+        # print("============== filter2 = {0} ms=================".format(current_milli_time() -t2))
         #print(result_max_conf)
         if result_max_conf == None:
+            print("============== No Box, send box NG and return=================")
             return self.box_ng()
 
         #get box dimension from conner
@@ -305,33 +323,20 @@ class My_Camera:
         z = get_high_average(p[0], p[1], p[2], p[3], self.cam_param.cam_wd)
         box_dim = [w, h, z]
         finnal_result = result_max_conf._replace(rect_dim=box_dim)
-        print(f'result_max_conf = {result_max_conf}')
-        print(f'finnal_result = {finnal_result}')
-        
-        # print(f"box dim = {w},{h},{z}")
-
-        # box = BOX()
-        # box.Name = label_map[result_max_conf.class_index]
-        # box.height = z
-        # box.width = h
-        # box.length = w
-        # box.Message = "OK"
-        # data = (box.to_json())
+        # print("============== get box = {0}=================".format(current_milli_time() -t3))
+        t4 = current_milli_time() - t1
+        # print(f"============== BOX_CALCULATOR {t2}ms=================")
         return self.box_ok(finnal_result,label_map)
 
     def getPointCloud(self, y:int, x:int):
         #convert point cloud
-        
-        print("pointcloud shape = {0}".format(self.point_cloud.shape))
-
-        
-        print("cam_width = {0}".format(self.cam_width))
-
+        # print("pointcloud shape = {0}".format(self.point_cloud.shape))
+        # print("cam_width = {0}".format(self.cam_width))
         #get index
         index = (int)(y * self.cam_width + x)
-        print(f"point cloud index = {index}")
+        # print(f"point cloud index = {index}")
         #get data
-        print("data 2d ({0},{1}) => 3d ({2}), index = {3}".format(x,y,self.point_cloud[index],index))
+        print("\tMapping 2d ({0},{1}) => 3d ({2}), index = {3}".format(x,y,self.point_cloud[index],index))
         return self.point_cloud[index]
 
 

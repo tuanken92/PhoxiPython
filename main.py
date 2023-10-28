@@ -139,32 +139,33 @@ def process_message(message):
         print("Is connected to camera {0} = {1}".format(my_param.camera_param.device_id, is_connected))
 
     elif message == 't':
+        if not camera.is_connected:
+            print("[WARNING] Camera is not connected, press 'r' to reconnect cam,era")
+            return
         #get frame from camera
+        t1 = current_milli_time()
         frame = camera.trigger_camera()
-
-        # print("1---->frame data = ", frame.shape)
+        t2 = current_milli_time()
+        print("[TIME] Get frame ======================{0} ms".format(current_milli_time() - t1))
         # #detect conner
-        file_name_debug = "fr_current.bmp"
-        b = cv2.imwrite(file_name_debug, frame)
-        print("----->save frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
+        # file_name_debug = "fr_current.bmp"
+        # b = cv2.imwrite(file_name_debug, frame)
+        # print("----->save frame shape = {0}, save file {2}= {1}".format(frame.shape, b,file_name_debug))
         
         #detect box
         results = detector.predict_frame(frame)
-        
-        # ftp_file = ftp_client.upload_file(detector.saved_file_detector)
-        # if not ftp_file:
-            # print("=====> upload file error")
-
-        #get box data
-        # ftp_file = f"ftp://{my_param.ftp_param.ftp_server}/{ftp_file}"
+        t3= current_milli_time()
+        print("[TIME] Predict frame ======================{0} ms".format(current_milli_time() - t2))
+        #get box dimension and transfer
         box_data = camera.box_calculation2(results, detector.label_map)
+        print("[TIME] Box_calculation2 ======================{0} ms".format(current_milli_time() - t3))
         if box_data == None:
             boxNG = BOX()
             # boxNG.ImgURL = ftp_file
             client.send_data(boxNG.box_NG())
         else:
             client.send_data(box_data)
-        
+        print("[TIME] Total time ======================{0} ms".format(current_milli_time() - t1))
     elif message == ' ':
         camera.trigger_camera_display()
 

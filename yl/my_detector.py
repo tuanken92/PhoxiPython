@@ -52,11 +52,11 @@ class My_Detector:
 
         # Make predictions
         t1 = current_milli_time()
-        print("-------->start predict, frame shape = {0}".format(frame.shape))
+        # print("-------->start predict, frame shape = {0}".format(frame.shape))
         results = self.model.predict(frame, save=self.param.saved_img, imgsz=self.param.imgsz, conf=self.param.conf)
-        print("--------->finnished, took {0} ms, number result = {1}".format(current_milli_time() - t1, len(results)))
+        # print("--------->finnished, took {0} ms, number result = {1}".format(current_milli_time() - t1, len(results)))
         #debug result
-        print("====================Debug result tuanna=============")
+        # print("====================Debug result tuanna=============")
         for result in results:
             boxes = result.boxes
             for index, box in enumerate(boxes):
@@ -90,11 +90,11 @@ class My_Detector:
 
         # Make predictions
         t1 = current_milli_time()
-        print("-------->start predict, frame shape = {0}".format(frame.shape))
+        # print("-------->start predict, frame shape = {0}".format(frame.shape))
         result = self.model.predict(frame, save=self.param.saved_img, imgsz=self.param.imgsz, conf=self.param.conf)[0]
-        print("--------->finnished, took {0} ms, number result = {1}".format(current_milli_time() - t1, len(result)))
+        # print("--------->finnished, took {0} ms, number result = {1}".format(current_milli_time() - t1, len(result)))
         #debug result
-        print("====================Debug result tuanna=============")
+        # print("====================Debug result tuanna=============")
         boxes = result.boxes
         masks = result.masks
         
@@ -133,13 +133,13 @@ class My_Detector:
             ))
         results = sorted(results, key=lambda x: x.conf, reverse=True)
 
-        print("====================Debug result=============")
-        label_map = self.label_map
-        nc = len(label_map)
-        colors = np.random.uniform(0, 255, size=(nc, 3))
-        mat = plot_results(results, frame, label_map=label_map, colors=colors)
-        b = cv2.imwrite("abc.png", mat)
-        print("====================drawing============={0}".format(b))
+        # print("====================Debug result=============")
+        # label_map = self.label_map
+        # nc = len(label_map)
+        # colors = np.random.uniform(0, 255, size=(nc, 3))
+        # mat = plot_results(results, frame, label_map=label_map, colors=colors)
+        # b = cv2.imwrite("abc.png", mat)
+        # print("====================drawing============={0}".format(b))
         #end debug
         #return self.get_4points(results, frame)
         return results

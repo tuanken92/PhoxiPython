@@ -21,13 +21,13 @@ class My_FTPUpload:
 
     def upload_file(self, file_path:str):
         if True:
-            print(f'====> upload file: file path = {file_path}')
+            print(f'[DATA] ====> upload file: file path = {file_path}')
             #open file
             file = open(file_path,'rb')
             
             # get file name
             file_name = Path(file_path).stem
-            print(f'====> upload file: file name = {file_name}')
+            # print(f'====> upload file: file name = {file_name}')
             
             self.file_on_server = f'{self.ftp_parm.dir_upload}/{file_name}.png'
             # send the file
@@ -36,31 +36,13 @@ class My_FTPUpload:
             #close file
             file.close()
 
-            print(f'====> upload file: file ftp = {self.file_on_server}')
+            # print(f'====> upload file: file ftp = {self.file_on_server}')
             return self.file_on_server
 
         # except:
         #     print(f"can't send file {self.file_on_server}")
         #     return None
 
-    def upload_frame(self, frame:str, file_name:str):
-        if True:
-            # Convert the image data to bytes
-            image_bytes = cv2.imencode('.png', frame)[1].tobytes()
-
-            
-            self.file_on_server = f'{self.ftp_parm.dir_upload}/{file_name}'
-
-            # send the file
-            with self.session.storbinary(f'STOR {self.file_on_server}', file=image_bytes) as writer:
-                writer.write(image_bytes)
-
-            print(f'====> upload file: file ftp = {self.file_on_server}')
-            return self.file_on_server
-
-        # except:
-        #     print(f"can't send file {self.file_on_server}")
-        #     return None
 
     def close_fpt(self):
         self.session.quit()

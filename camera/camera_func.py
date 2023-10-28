@@ -59,7 +59,7 @@ def get_texture(color_component, name):
     # return color_image
     my_frame = "frame/my_frame.png"
     b = cv2.imwrite(my_frame, color_image)
-    print("save frame {0}= {1}".format(my_frame, b))
+    print("\tSave frame {0} = {1}".format(my_frame, b))
     return cv2.imread(my_frame)
 
 

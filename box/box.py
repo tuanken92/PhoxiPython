@@ -32,11 +32,11 @@ class BOX:
         }
 
     def to_json(self):
-        xxx =  "\"boxData\":{0}".format(json.dumps(self.to_dict(), indent=4))
+        xxx =  "\"boxData\":{0},".format(json.dumps(self.to_dict(), indent=4))
         print(xxx)
         return xxx
 
     def box_NG(self):
-        xxx =  "\"boxData\":{0}".format(json.dumps(self.to_dict(), indent=4))
+        xxx =  "\"boxData\":{0},".format(json.dumps(self.to_dict(), indent=4))
         print(xxx)
         return xxx
