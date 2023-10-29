@@ -113,16 +113,18 @@ class My_Detector:
             mask = n_points[i].astype(np.uintp) if masks is not None else None
 
             rect = cv2.minAreaRect(mask) if mask is not None else None
+            # print(f'rect origin = {rect}')
             center, (width, height), angle = rect
 
             #rect offet
             width += 2 * self.param.offset_width
             height += 2 * self.param.offset_height
             rect_offset = ((center[0], center[1]), (width, height), angle)
+            # print(f'rect offset origin = {rect_offset}')
             #rect dimension
             rect_dim = [0.0, 0.0, 0.0]
 
-            results.append(DNNRESULT(
+            result = DNNRESULT(
                 class_index=n_class_index[i],
                 box=n_bndBox[i],
                 mask=mask,
@@ -130,9 +132,12 @@ class My_Detector:
                 rect=rect,
                 rect_offset=rect_offset,
                 rect_dim=rect_dim
-            ))
-        results = sorted(results, key=lambda x: x.conf, reverse=True)
+            )
+            # print(f'result origin = {result}')
 
+            results.append(result)
+
+        results = sorted(results, key=lambda x: x.conf, reverse=True)
         # print("====================Debug result=============")
         # label_map = self.label_map
         # nc = len(label_map)

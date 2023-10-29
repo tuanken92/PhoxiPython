@@ -132,12 +132,11 @@ def plot_results(results, img:np.ndarray, label_map={}, colors=[]):
             else:
                 color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-            img = plot_one_box(box, img, 
-                                mask=mask, 
-                                label=label, 
-                                color=color, line_thickness=1)
+            
             
             if mask is not None:
+                print(f'rect = {rect}')
+                print(f'rect_offset = {rect_offset}')
                 color = (0, 255, 255)
                 plot_one_min_rect(rect, img, 
                                 color=color, 
@@ -146,4 +145,9 @@ def plot_results(results, img:np.ndarray, label_map={}, colors=[]):
                 plot_one_min_rect(rect_offset, img, 
                                 color=color, 
                                 line_thickness=2)
+
+            img = plot_one_box(box, img, 
+                                mask=mask, 
+                                label=label, 
+                                color=color, line_thickness=1)
         return img

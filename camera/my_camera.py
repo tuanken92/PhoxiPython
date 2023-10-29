@@ -93,11 +93,11 @@ class My_Camera:
     def trigger_camera(self):
         # Trigger frame by calling property's setter.
         # Must call TriggerFrame before every fetch.
-        self.features.TriggerFrame.execute() # trigger first frame
-        with self.cam.fetch(timeout=10.0) as buffer:
+        # self.features.TriggerFrame.execute() # trigger first frame
+        # with self.cam.fetch(timeout=10.0) as buffer:
                 # grab first frame
                 # do something with first frame
-                pass
+                # pass
         # also possible use with error checking:
         self.features.TriggerFrame.execute() # trigger third frame
         with self.cam.fetch(timeout=10.0) as buffer:
@@ -233,6 +233,7 @@ class My_Camera:
         return data
 
     def box_ok(self, result:DNNRESULT, label_map:dict):
+        print(f'\tfinnal_result = {result}')
         t1 = current_milli_time()
         nc = len(label_map)
         colors = np.random.uniform(0, 255, size=(nc, 3))
@@ -323,6 +324,7 @@ class My_Camera:
         z = get_high_average(p[0], p[1], p[2], p[3], self.cam_param.cam_wd)
         box_dim = [w, h, z]
         finnal_result = result_max_conf._replace(rect_dim=box_dim)
+        # print(f'\tfinnal_result = {finnal_result}')
         # print("============== get box = {0}=================".format(current_milli_time() -t3))
         t4 = current_milli_time() - t1
         # print(f"============== BOX_CALCULATOR {t2}ms=================")
