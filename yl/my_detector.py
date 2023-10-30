@@ -38,9 +38,9 @@ class My_Detector:
             # Make predictions
             t1 = current_milli_time()
             print("start predict {0}".format(source))
-            results = self.model.predict(source, save=self.param.saved_img, imgsz=self.param.imgsz, conf=self.param.conf)
+            results = self.model.predict(source, save=True, imgsz=self.param.imgsz, conf=self.param.conf)
             print("--------->finnished, take {0} ms".format(current_milli_time() - t1))
-            print(results[0])
+            # print(results[0])
             return results
         except:
             print(f"Can't predict")

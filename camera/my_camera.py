@@ -174,7 +174,7 @@ class My_Camera:
         if self.is_found_cam:
             #connect cam with ID
             self.cam = self.h.create({'id_': self.cam_param.device_id})
-            print(self.cam.Events.__members__)
+            # print(self.cam.Events.__members__)
             
             self.features = self.cam.remote_device.node_map
             self.is_connected = True
@@ -233,7 +233,7 @@ class My_Camera:
         return data
 
     def box_ok(self, result:DNNRESULT, label_map:dict):
-        print(f'\tfinnal_result = {result}')
+        # print(f'\tfinnal_result = {result}')
         t1 = current_milli_time()
         nc = len(label_map)
         colors = np.random.uniform(0, 255, size=(nc, 3))

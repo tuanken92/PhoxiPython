@@ -176,7 +176,7 @@ def process_message(message):
         detector.load_model()
 
     elif ".jpg" in message or ".png" in message or ".bmp" in message:
-        detector.predict(message)
+        detector.predict2(message)
 
     print(f"==========done=============")
 

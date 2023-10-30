@@ -50,14 +50,14 @@ def get_texture(color_component, name):
     # Reshape 1D array to 2D RGB image
     color_image = color_component.data.reshape(color_component.height, color_component.width, 3).copy()
     # Normalize array to range 0 - 65535
-    color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
+    # color_image = cv2.normalize(color_image, dst=None, alpha=0, beta=65535, norm_type=cv2.NORM_MINMAX)
     color_image = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
-    # color_image = color_image.astype(np.int16)
+    color_image = color_image.astype(np.int16)
     # color_image = color_image.astype(np.int16)
     # Show image
     #cv2.imshow(name, color_image)
-    # return color_image
-    my_frame = "frame/my_frame.png"
+    return color_image
+    my_frame = "frame/my_frame.bmp"
     b = cv2.imwrite(my_frame, color_image)
     print("\tSave frame {0} = {1}".format(my_frame, b))
     return cv2.imread(my_frame)

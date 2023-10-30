@@ -135,8 +135,8 @@ def plot_results(results, img:np.ndarray, label_map={}, colors=[]):
             
             
             if mask is not None:
-                print(f'rect = {rect}')
-                print(f'rect_offset = {rect_offset}')
+                # print(f'rect = {rect}')
+                # print(f'rect_offset = {rect_offset}')
                 color = (0, 255, 255)
                 plot_one_min_rect(rect, img, 
                                 color=color, 
