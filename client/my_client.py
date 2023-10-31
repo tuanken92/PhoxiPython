@@ -13,17 +13,29 @@ class My_Client:
         self.is_connected = False
 
     def connect(self):
+        if self.is_connected:
+            print("Client is connected to server....")
+            return True
+        
         try:
+            if self.client_socket._closed:
+                self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
             self.client_socket.connect((self.client_param.server_add, self.client_param.server_port))
             self.is_connected = True
             print(f"Connected to {self.client_param.server_add}:{self.client_param.server_port}")
+            return True
             # self.receive_thread = threading.Thread(target=self.receive_data_thread)
             # self.receive_thread.daemon = True
             # self.receive_thread.start()
         except ConnectionRefusedError:
             self.is_connected = False
             print(f"Connection to {self.client_param.server_add}:{self.client_param.server_port} refused")
-            return
+            return False
+        except OSError as e:
+            self.is_connected = False
+            print(f"Connection error: {e}")
+            return False
 
     def send_data(self, data):
         if self.is_connected:
@@ -51,6 +63,6 @@ class My_Client:
 
     def close(self):
         self.is_connected = False
-        if self.receive_thread:
-            self.receive_thread.join()
         self.client_socket.close()
+        # if self.receive_thread:
+        #     self.receive_thread.join()

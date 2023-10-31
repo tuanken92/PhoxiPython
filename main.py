@@ -31,6 +31,9 @@ def run_thread():
     thKeyboard = threading.Thread(target=process_keyboard)
 
     # Start the threads
+    thTCPClient.daemon = True
+    thKeyboard.daemon = True
+    
     thTCPClient.start()
     thKeyboard.start()
 
@@ -82,29 +85,41 @@ def process_cam_by_tcpip():
     print(f"===========start thread tcp-client============")
     while enable_thread_tcp:
         if client == None or client.is_connected == False:
-            time.sleep(0.05)
+            time.sleep(1)
+            client.close()
+            reconnect = client.connect()
+            print("reconnect server {0}:{1} = {2}".format(
+                my_param.client_param.server_add,
+                my_param.client_param.server_port,
+                reconnect
+            ))
             continue
         
-        #get data
-        data_server = client.client_socket.recv(1024)
-        if not data_server:
-            print("=============Server closed the connection, close thread tcp-client")
-            client.is_connected = False
-            enable_thread_tcp = False
-            break
+        try:
+            #get data
+            data_server = client.client_socket.recv(1024)
+            if not data_server:
+                print("=============Server closed the connection, close thread tcp-client")
+                client.is_connected = False
+                client.close()
+                # enable_thread_tcp = False
+                continue
 
-        data = data_server.decode()
-        print(f"data = {data}, type = {type(data)}")
+            data = data_server.decode()
+            print(f"data = {data}, type = {type(data)}")
 
-        if data == None:
-            time.sleep(0.05)
-            continue
+            if data == None:
+                time.sleep(0.05)
+                continue
 
-        #process data
-        process_message(data)
+            #process data
+            process_message(data)
+        except ConnectionRefusedError as e:
+            print(f"ConnectionRefusedError: {e}")
+        except OSError as e:
+            print(f"Connection error: {e}")
+        
 
-        #clear data
-        client.data = None
         
     print(f"===========finish thread tcp-client============")
 
@@ -129,6 +144,10 @@ def process_message(message):
     print(f"===========data = {message}============")
     
     if message == 'q':
+        if camera.is_connected:
+            camera.close()
+        if client.is_connected:
+            client.close()
         enable_thread_tcp = False
         enable_thread_keyboard = False
         return
@@ -138,9 +157,10 @@ def process_message(message):
         is_connected = camera.connect()
         print("Is connected to camera {0} = {1}".format(my_param.camera_param.device_id, is_connected))
 
+
     elif message == 't':
         if not camera.is_connected:
-            print("[WARNING] Camera is not connected, press 'r' to reconnect cam,era")
+            print("[WARNING] Camera is not connected, press 'r' to reconnect cammera")
             return
         #get frame from camera
         t1 = current_milli_time()

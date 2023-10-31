@@ -81,7 +81,7 @@ def plot_one_box(box:np.ndarray, img:np.ndarray, color=None, mask:np.ndarray = N
         if color is None:
             color = [random.randint(0, 255) for _ in range(3)]
         c1, c2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-        cv2.rectangle(img, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
+        # cv2.rectangle(img, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
         if label:
             tf = max(tl - 1, 1)  # font thickness
             t_size = cv2.getTextSize(label, 0, fontScale=fs, thickness=tf)[0]

@@ -348,8 +348,7 @@ class My_Camera:
             # if self.receive_thread:
             #     self.receive_thread.join()
             # Remove all callbacks to not any callback work:
-            # self.cam.remove_callbacks()
             # self.cam.remove_callback(self.cam.Events.NEW_BUFFER_AVAILABLE)
-            # self.cam.d()
-            # self.cam.destroy()
+            self.cam.remove_callbacks()
+            self.cam.destroy()
         

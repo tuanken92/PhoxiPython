@@ -56,10 +56,10 @@ def get_texture(color_component, name):
     # color_image = color_image.astype(np.int16)
     # Show image
     #cv2.imshow(name, color_image)
-    return color_image
     my_frame = "frame/my_frame.bmp"
     b = cv2.imwrite(my_frame, color_image)
     print("\tSave frame {0} = {1}".format(my_frame, b))
+    return color_image
     return cv2.imread(my_frame)
 
 
