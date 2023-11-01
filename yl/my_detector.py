@@ -138,14 +138,15 @@ class My_Detector:
             results.append(result)
 
         results = sorted(results, key=lambda x: x.conf, reverse=True)
-        # print("====================Debug result=============")
-        # label_map = self.label_map
-        # nc = len(label_map)
-        # colors = np.random.uniform(0, 255, size=(nc, 3))
-        # mat = plot_results(results, frame, label_map=label_map, colors=colors)
-        # b = cv2.imwrite("abc.png", mat)
-        # print("====================drawing============={0}".format(b))
-        #end debug
+        print("====================Debug result=============")
+        label_map = self.label_map
+        nc = len(label_map)
+        colors = np.random.uniform(0, 255, size=(nc, 3))
+        mat = plot_results(results, frame, label_map=label_map, colors=colors)
+        b = cv2.imwrite("abc.png", mat)
+        # cv2.imshow("frame", mat)
+        print("====================drawing============={0}".format(b))
+        # end debug
         #return self.get_4points(results, frame)
         return results
 

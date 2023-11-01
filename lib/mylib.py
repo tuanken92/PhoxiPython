@@ -60,3 +60,26 @@ def get_high_average(point1, point2, point3, point4, cam_setup):
 
     h = cam_setup - (point1[2] + point2[2] + point3[2] + point4[2])/4
     return h
+
+def points_on_line_segment(x1, y1, x2, y2):
+    # Tính chiều dài của đoạn AB theo trục Ox và Oy
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    
+    # Duyệt qua các điểm trên đoạn AB
+    for i in range(max(dx, dy) + 1):
+        x = x1 + i * (x2 - x1) // max(dx, dy)
+        y = y1 + i * (y2 - y1) // max(dx, dy)
+        yield x, y
+
+def test():
+    # Điểm A(x1, y1)
+    x1 = 212
+    y1 = 268
+
+    # Điểm B(x2, y2)
+    x2 = 223
+    y2 = 289
+
+    for x, y in points_on_line_segment(x1, y1, x2, y2):
+        print(f"Điểm ({x}, {y}) trên đoạn thẳng AB trong hệ tọa độ Oxy")

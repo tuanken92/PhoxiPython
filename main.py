@@ -196,8 +196,9 @@ def process_message(message):
         detector.load_model()
 
     elif ".jpg" in message or ".png" in message or ".bmp" in message:
-        detector.predict2(message)
-
+        # detector.predict2(message)
+        frame = cv2.imread(message)
+        detector.predict_frame(frame)
     print(f"==========done=============")
 
 if __name__ == '__main__':
