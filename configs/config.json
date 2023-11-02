@@ -21,8 +21,8 @@
     "cam_working_distance": 990.0,
     "debug_mode": true,
 
-    "model_path": "../model/bestTuanNA.pt",
-    "model_path1": "../model/best21.pt",
+    "model_path1": "../model/bestTuanNA.pt",
+    "model_path": "../model/best21.pt",
     "label_path": "configs/label.yaml",
     "saved": false,
     "score": 0.3,

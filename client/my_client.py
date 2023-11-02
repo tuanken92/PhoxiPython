@@ -41,7 +41,7 @@ class My_Client:
         if self.is_connected:
             self.client_socket.send(data.encode())
         else:
-            print("Check connection...")
+            print("Check connection, not connected to server...")
 
     def receive_data_thread(self):
         while self.is_connected:

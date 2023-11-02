@@ -72,6 +72,76 @@ def points_on_line_segment(x1, y1, x2, y2):
         y = y1 + i * (y2 - y1) // max(dx, dy)
         yield x, y
 
+def points_on_line_segment(p1, p2):
+    data  = []
+    # Tìm tọa độ tối thiểu và tối đa của đoạn thẳng
+    Ax, Ay = p1
+    Bx, By = p2
+    
+    Ax = int(Ax)
+    Ay = int(Ay)
+    Bx = int(Bx)
+    By = int(By)
+
+    min_x = min(Ax, Bx)
+    max_x = max(Ax, Bx)
+
+    # Tìm độ dài của đoạn thẳng trên trục Ox
+    dx = max_x - min_x
+
+    # Tính hệ số góc của đoạn thẳng
+    if dx != 0:
+        m = (By - Ay) / dx
+    else:
+        m = 0
+
+    # Liệt kê các điểm nguyên trên đoạn thẳng AB
+    for x in range(min_x, max_x + 1):
+        y = Ay + m * (x - Ax)
+        rounded_y = round(y)  # Làm tròn tọa độ y để có giá trị nguyên
+        # print(f"({x}, {rounded_y})")
+        data.append([x,rounded_y])
+    
+    return data
+
+def points_on_line_segment2(p1, p2):
+    data  = []
+    # Tính chiều dài của đoạn AB theo trục Ox và Oy
+    x1, y1 = p1
+    x2, y2 = p2
+
+    print(f'x1 = {x1}; x2 = {x2}')
+    print(f'y1 = {y1}; y2 = {y2}')
+
+    dx = abs(int(x2) - int(x1))
+    dy = abs(int(y2) - int(y1))
+
+    
+    print(f'dx = {dx}. dy = {dy}, max = {max(dx, dy)}')
+    # return
+    # Duyệt qua các điểm trên đoạn AB
+    for i in range(max(dx, dy),1):
+        x = x1 + i * (x2 - x1) // max(dx, dy)
+        y = y1 + i * (y2 - y1) // max(dx, dy)
+        print(f'x = {x}. y = {y}')
+        data.append([x,y])
+    
+    return data
+
+def process_line_point(conner_outside, conner_inside):
+    result = []
+    print(f'conner_outside = {conner_outside}')
+    print(f'conner_inside = {conner_inside}')
+    for i in range(4):
+        print(f'i = {i}, conner_in = {conner_inside[i]}, conner_out = {conner_outside[i]}')
+        point_data = points_on_line_segment(conner_outside[i], conner_inside[i])
+        # print(f'point data = {point_data}')
+        # for point in point_data:
+        #     print(f'x = {point[0]}, y = {point[1]}')
+        result.append(point_data)
+        print(f'------------------')
+    return result
+
 def test():
     # Điểm A(x1, y1)
     x1 = 212

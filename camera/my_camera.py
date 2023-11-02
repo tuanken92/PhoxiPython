@@ -330,6 +330,93 @@ class My_Camera:
         # print(f"============== BOX_CALCULATOR {t2}ms=================")
         return self.box_ok(finnal_result,label_map)
 
+    def box_calculation3(self, results, label_map:dict):
+        """
+        results: list DNNRESULT("class_index", "box", "mask", "conf",...)
+        """
+        if len(results) == 0:
+            return self.box_ng()
+
+        result:DNNRESULT = None
+
+        #filter bbox in frame
+        t1 = current_milli_time()
+        results_in_frame = []
+        for result in results:
+            rect_offset = result.rect_offset
+            box_with_padding = cv2.boxPoints(rect_offset).astype(np.uintp)
+            is_ok = True
+            for conner in box_with_padding:
+                x,y = conner
+                if x >= self.point_cloud_component.width or y>=self.point_cloud_component.height:
+                    is_ok = False
+                    # print(f"Ignore index {index}, data = {box_with_padding}")
+                    break
+            if is_ok:
+                # print(f"Add index {index}, data = {box_with_padding}")
+                results_in_frame.append(result)
+        #print(results_in_frame)
+        t2 = current_milli_time()
+        # print("============== filter1 = {0} ms=================".format(current_milli_time() -t1))
+        if len(results_in_frame) == 0:
+            print("============== No Box, send box NG and return=================")
+            return self.box_ng()
+
+        #filter bbox with max confidence in frame
+        result_max_conf:DNNRESULT = None
+        max_confident = 0.0
+        for result in results_in_frame:
+            conf = result.conf
+            if conf >= max_confident:
+                max_confident = conf
+                result_max_conf = result
+                # print(f"===========Update conf max = {conf}")
+        t3 = current_milli_time()
+        # print("============== filter2 = {0} ms=================".format(current_milli_time() -t2))
+        #print(result_max_conf)
+        if result_max_conf == None:
+            print("============== No Box, send box NG and return=================")
+            return self.box_ng()
+
+        #get box dimension from conner
+        rect_offset = result_max_conf.rect_offset
+        conners_inside = cv2.boxPoints(rect_offset).astype(np.uintp)
+        
+        rect = result_max_conf.rect
+        conners_outside = cv2.boxPoints(rect).astype(np.uintp)
+
+        point_3d = []
+        point_datas = process_line_point(conners_outside, conners_inside)
+        for point_data in point_datas:
+            print("=================")
+            for p in point_data:
+                print(p)
+                x,y=p
+                p3d = self.getPointCloud(y,x)
+                point_3d.append(p3d)
+                
+
+
+        
+        # p =[]
+        # for conner in conners:
+        #     x,y=conner
+        #     p.append(self.getPointCloud(y,x))
+        
+        # #get distance from p2p
+        # w = p2p(p[0], p[1])
+        # h = p2p(p[1], p[2])
+        # z = get_high_average(p[0], p[1], p[2], p[3], self.cam_param.cam_wd)
+        # box_dim = [w, h, z]
+        # finnal_result = result_max_conf._replace(rect_dim=box_dim)
+        # # print(f'\tfinnal_result = {finnal_result}')
+        # # print("============== get box = {0}=================".format(current_milli_time() -t3))
+        # t4 = current_milli_time() - t1
+        # # print(f"============== BOX_CALCULATOR {t2}ms=================")
+        # return self.box_ok(finnal_result,label_map)
+        return self.box_ng()
+    
+
     def getPointCloud(self, y:int, x:int):
         #convert point cloud
         # print("pointcloud shape = {0}".format(self.point_cloud.shape))

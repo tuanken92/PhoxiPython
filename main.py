@@ -177,7 +177,7 @@ def process_message(message):
         t3= current_milli_time()
         print("[TIME] Predict frame ======================{0} ms".format(current_milli_time() - t2))
         #get box dimension and transfer
-        box_data = camera.box_calculation2(results, detector.label_map)
+        box_data = camera.box_calculation3(results, detector.label_map)
         print("[TIME] Box_calculation2 ======================{0} ms".format(current_milli_time() - t3))
         if box_data == None:
             boxNG = BOX()
