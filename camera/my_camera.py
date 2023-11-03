@@ -385,15 +385,28 @@ class My_Camera:
         rect = result_max_conf.rect
         conners_outside = cv2.boxPoints(rect).astype(np.uintp)
 
-        point_3d = []
+        p =[]
         point_datas = process_line_point(conners_outside, conners_inside)
         for point_data in point_datas:
             print("=================")
-            for p in point_data:
-                print(p)
-                x,y=p
+            point_3d = []
+            for point_dt in point_data:
+                # print(p)
+                x,y=point_dt
                 p3d = self.getPointCloud(y,x)
+                if p3d[0] == 0 and p3d[1] == 0 and p3d[2] == 0:
+                    print("======> bypass")
+                    continue
                 point_3d.append(p3d)
+            z_common = get_z_common(point_3d)
+            # Loại bỏ các điểm 3D nhiễu
+            filtered_data_3d = [point for point in point_3d if abs(point[2] - z_common) <= 2]
+            print(f'filtered_data_3d = {filtered_data_3d}')
+            if len(filtered_data_3d) == 0:
+                return self.box_ng()
+            p.append(filtered_data_3d[0])
+
+
                 
 
 
@@ -402,18 +415,20 @@ class My_Camera:
         # for conner in conners:
         #     x,y=conner
         #     p.append(self.getPointCloud(y,x))
-        
-        # #get distance from p2p
-        # w = p2p(p[0], p[1])
-        # h = p2p(p[1], p[2])
-        # z = get_high_average(p[0], p[1], p[2], p[3], self.cam_param.cam_wd)
-        # box_dim = [w, h, z]
-        # finnal_result = result_max_conf._replace(rect_dim=box_dim)
-        # # print(f'\tfinnal_result = {finnal_result}')
-        # # print("============== get box = {0}=================".format(current_milli_time() -t3))
-        # t4 = current_milli_time() - t1
-        # # print(f"============== BOX_CALCULATOR {t2}ms=================")
-        # return self.box_ok(finnal_result,label_map)
+        print(f'\tfinnal_result = {p}')
+        if len(p) != 4:
+            return self.box_ng()
+        #get distance from p2p
+        w = p2p(p[0], p[1])
+        h = p2p(p[1], p[2])
+        z = get_high_average(p[0], p[1], p[2], p[3], self.cam_param.cam_wd)
+        box_dim = [w, h, z]
+        finnal_result = result_max_conf._replace(rect_dim=box_dim)
+        # print(f'\tfinnal_result = {finnal_result}')
+        # print("============== get box = {0}=================".format(current_milli_time() -t3))
+        t4 = current_milli_time() - t1
+        # print(f"============== BOX_CALCULATOR {t2}ms=================")
+        return self.box_ok(finnal_result,label_map)
         return self.box_ng()
     
 

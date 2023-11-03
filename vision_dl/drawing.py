@@ -124,7 +124,8 @@ def plot_results(results, img:np.ndarray, label_map={}, colors=[]):
             h, w = img.shape[:2]
 
             if label_map:
-                label = f'{label_map[cls_index]}, dim({rect_dim[0]:.2f};{rect_dim[1]:.2f};{rect_dim[2]:.2f}), score: {conf:.2f}'
+                # label = f'{label_map[cls_index]}, dim({rect_dim[0]:.2f};{rect_dim[1]:.2f};{rect_dim[2]:.2f}), score: {conf:.2f}'
+                label = f'{label_map[cls_index]}, dim({int(rect_dim[0])};{int(rect_dim[1])};{int(rect_dim[2])}), score: {conf:.2f}'
             else:
                 label = f"OBJ, score: {conf:.2f}"
             if len(colors):

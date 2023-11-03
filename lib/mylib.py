@@ -61,7 +61,7 @@ def get_high_average(point1, point2, point3, point4, cam_setup):
     h = cam_setup - (point1[2] + point2[2] + point3[2] + point4[2])/4
     return h
 
-def points_on_line_segment(x1, y1, x2, y2):
+def points_on_line_segment3(x1, y1, x2, y2):
     # Tính chiều dài của đoạn AB theo trục Ox và Oy
     dx = abs(x2 - x1)
     dy = abs(y2 - y1)
@@ -89,18 +89,35 @@ def points_on_line_segment(p1, p2):
     # Tìm độ dài của đoạn thẳng trên trục Ox
     dx = max_x - min_x
 
-    # Tính hệ số góc của đoạn thẳng
-    if dx != 0:
-        m = (By - Ay) / dx
-    else:
-        m = 0
+
 
     # Liệt kê các điểm nguyên trên đoạn thẳng AB
-    for x in range(min_x, max_x + 1):
-        y = Ay + m * (x - Ax)
-        rounded_y = round(y)  # Làm tròn tọa độ y để có giá trị nguyên
-        # print(f"({x}, {rounded_y})")
-        data.append([x,rounded_y])
+    if Ax <= Bx:
+        # Tính hệ số góc của đoạn thẳng
+        if dx != 0:
+            m = (By - Ay) / dx
+        else:
+            m = 0
+
+        for x in range(Ax, Bx+1):
+            y = Ay + m * (x - Ax)
+            rounded_y = round(y)  # Làm tròn tọa độ y để có giá trị nguyên
+            # print(f"({x}, {rounded_y})")
+            data.append([x,rounded_y])
+    else:
+
+        # Tính hệ số góc của đoạn thẳng
+        if dx != 0:
+            m = (Ay - By) / dx
+        else:
+            m = 0
+
+        for x in range(Ax, Bx-1, -1):
+            y = Ay + m * (x - Ax)
+            rounded_y = round(y)  # Làm tròn tọa độ y để có giá trị nguyên
+            # print(f"({x}, {rounded_y})")
+            data.append([x,rounded_y])
+
     
     return data
 
@@ -133,8 +150,9 @@ def process_line_point(conner_outside, conner_inside):
     print(f'conner_outside = {conner_outside}')
     print(f'conner_inside = {conner_inside}')
     for i in range(4):
-        print(f'i = {i}, conner_in = {conner_inside[i]}, conner_out = {conner_outside[i]}')
+        print(f'i = {i}, conner_out = {conner_outside[i]}, conner_in = {conner_inside[i]}')
         point_data = points_on_line_segment(conner_outside[i], conner_inside[i])
+        print(f'------------------{len(point_data)}')
         # print(f'point data = {point_data}')
         # for point in point_data:
         #     print(f'x = {point[0]}, y = {point[1]}')
@@ -153,3 +171,23 @@ def test():
 
     for x, y in points_on_line_segment(x1, y1, x2, y2):
         print(f"Điểm ({x}, {y}) trên đoạn thẳng AB trong hệ tọa độ Oxy")
+
+
+def get_z_common(data_3d):
+    if len(data_3d) == 0:
+        return 0
+    # Tạo một từ điển để đếm tần số xuất hiện của giá trị Z
+    z_frequency = {}
+    for point in data_3d:
+        z_value = int(point[2])
+        if z_value in z_frequency:
+            z_frequency[z_value] += 1
+        else:
+            z_frequency[z_value] = 1
+
+    # Tìm giá trị Z xuất hiện nhiều nhất
+    max_z_value = max(z_frequency, key=z_frequency.get)
+    max_frequency = z_frequency[max_z_value]
+
+    print(f"Giá trị Z xuất hiện nhiều nhất: {max_z_value} (xuất hiện {max_frequency} lần)")
+    return max_z_value
