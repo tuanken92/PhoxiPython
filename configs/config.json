@@ -1,14 +1,17 @@
 {
     "server_ip1": "192.168.1.142",
-    "server_ip": "127.0.0.1",
+    "server_ip": "192.168.1.200",
     "server_port": 8002,
 
-    "ftp_server": "127.0.0.1",
-    "ftp_user": "thh",
-    "ftp_pass": "gachick@10",
-    "ftp_dir": "logistic",
+    "ftp_server1": "127.0.0.1",
+    "ftp_user1": "thh",
+    "ftp_pass1": "gachick@10",
+    "ftp_dir1": "logistic",
     
-
+    "ftp_server": "192.168.1.162",
+    "ftp_user": "a",
+    "ftp_pass": "a",
+    "ftp_dir": "logistics",
 
     "device_id": "PhotoneoTL_DEV_IDV-087",
     "device_id2": "PhotoneoTL_DEV_InstalledExamples-color-example",
@@ -21,8 +24,8 @@
     "cam_working_distance": 990.0,
     "debug_mode": true,
 
-    "model_path1": "../model/bestTuanNA.pt",
-    "model_path": "../model/best21.pt",
+    "model_path": "../model/bestTuanNA.pt",
+    "model_path1": "../model/best21.pt",
     "label_path": "configs/label.yaml",
     "saved": false,
     "score": 0.3,

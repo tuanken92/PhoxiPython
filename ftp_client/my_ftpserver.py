@@ -37,7 +37,8 @@ class My_FTPUpload:
             file.close()
 
             # print(f'====> upload file: file ftp = {self.file_on_server}')
-            return self.file_on_server
+            data = f'ftp://{self.ftp_parm.ftp_server}/{self.ftp_parm.dir_upload}/{file_name}.png'
+            return data
 
         # except:
         #     print(f"can't send file {self.file_on_server}")

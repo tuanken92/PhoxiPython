@@ -388,20 +388,20 @@ class My_Camera:
         p =[]
         point_datas = process_line_point(conners_outside, conners_inside)
         for point_data in point_datas:
-            print("=================")
+            # print("=================")
             point_3d = []
             for point_dt in point_data:
                 # print(p)
                 x,y=point_dt
                 p3d = self.getPointCloud(y,x)
                 if p3d[0] == 0 and p3d[1] == 0 and p3d[2] == 0:
-                    print("======> bypass")
+                    # print("======> bypass")
                     continue
                 point_3d.append(p3d)
             z_common = get_z_common(point_3d)
             # Loại bỏ các điểm 3D nhiễu
             filtered_data_3d = [point for point in point_3d if abs(point[2] - z_common) <= 2]
-            print(f'filtered_data_3d = {filtered_data_3d}')
+            # print(f'filtered_data_3d = {filtered_data_3d}')
             if len(filtered_data_3d) == 0:
                 return self.box_ng()
             p.append(filtered_data_3d[0])

@@ -34,7 +34,8 @@ def load_param_from_config():
         ftp_server = config.get("ftp_server")
         ftp_user = config.get("ftp_user")
         ftp_pass = config.get("ftp_pass")
-        ftp_param = FTP_Param(ftp_server, ftp_user, ftp_pass)
+        ftp_dir = config.get("ftp_dir")
+        ftp_param = FTP_Param(ftp_server, ftp_user, ftp_pass, ftp_dir)
         ftp_param.print_info()
 
         #camera

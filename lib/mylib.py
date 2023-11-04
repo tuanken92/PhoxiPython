@@ -147,17 +147,17 @@ def points_on_line_segment2(p1, p2):
 
 def process_line_point(conner_outside, conner_inside):
     result = []
-    print(f'conner_outside = {conner_outside}')
-    print(f'conner_inside = {conner_inside}')
+    # print(f'conner_outside = {conner_outside}')
+    # print(f'conner_inside = {conner_inside}')
     for i in range(4):
-        print(f'i = {i}, conner_out = {conner_outside[i]}, conner_in = {conner_inside[i]}')
+        # print(f'i = {i}, conner_out = {conner_outside[i]}, conner_in = {conner_inside[i]}')
         point_data = points_on_line_segment(conner_outside[i], conner_inside[i])
-        print(f'------------------{len(point_data)}')
+        # print(f'------------------{len(point_data)}')
         # print(f'point data = {point_data}')
         # for point in point_data:
         #     print(f'x = {point[0]}, y = {point[1]}')
         result.append(point_data)
-        print(f'------------------')
+        # print(f'------------------')
     return result
 
 def test():

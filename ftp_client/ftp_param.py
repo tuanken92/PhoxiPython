@@ -1,5 +1,5 @@
 class FTP_Param():
-    def __init__(self, ftp_server:str, user:str, password:str, dir_upload='logistic') -> None:
+    def __init__(self, ftp_server:str, user:str, password:str, dir_upload='logistics') -> None:
         self.ftp_server = ftp_server
         self.user = user
         self.password = password
