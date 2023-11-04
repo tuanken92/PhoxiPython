@@ -85,7 +85,7 @@ def process_cam_by_tcpip():
     print(f"===========start thread tcp-client============")
     while enable_thread_tcp:
         if client == None or client.is_connected == False:
-            time.sleep(1)
+            time.sleep(5)
             client.close()
             reconnect = client.connect()
             print("reconnect server {0}:{1} = {2}".format(
@@ -152,10 +152,27 @@ def process_message(message):
         enable_thread_keyboard = False
         return
 
-    if message == 'r':
+    elif message == 'r':
         camera.find_camera()
         is_connected = camera.connect()
         print("Is connected to camera {0} = {1}".format(my_param.camera_param.device_id, is_connected))
+
+    #enable debug mode
+    elif message == 'D':
+        my_param.debug_mode = True
+        print("[Debug] debug = True")
+
+    elif message == 'd':
+        my_param.debug_mode = False
+        print("[Debug] debug = False")
+
+    #save image
+    elif message == 'S':
+        my_param.detector_param.saved_img = True
+        print("[Detector] SavedImage = True")
+    elif message == 's':
+        my_param.detector_param.saved_img = False
+        print("[Detector] SavedImage = False")
 
 
     elif message == 't':

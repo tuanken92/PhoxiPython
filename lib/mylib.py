@@ -4,7 +4,6 @@ import math
 import yaml
 from datetime import datetime
 
-
 def load_labels(label_path:str):
     label_map = {}
     if label_path.endswith('.yaml'):
@@ -189,5 +188,6 @@ def get_z_common(data_3d):
     max_z_value = max(z_frequency, key=z_frequency.get)
     max_frequency = z_frequency[max_z_value]
 
-    print(f"Giá trị Z xuất hiện nhiều nhất: {max_z_value} (xuất hiện {max_frequency} lần)")
+    
+    # print(f"Giá trị Z xuất hiện nhiều nhất: {max_z_value} (xuất hiện {max_frequency} lần)")
     return max_z_value

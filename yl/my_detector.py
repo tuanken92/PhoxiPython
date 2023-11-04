@@ -7,7 +7,7 @@ from yl.detector_param import*
 import numpy as np
 import cv2
 import random
-
+import my_param
 
 
 class My_Detector:
@@ -143,9 +143,9 @@ class My_Detector:
         nc = len(label_map)
         colors = np.random.uniform(0, 255, size=(nc, 3))
         mat = plot_results(results, frame, label_map=label_map, colors=colors)
-        b = cv2.imwrite("abc.png", mat)
+        b = cv2.imwrite("result_inference.png", mat)
         # cv2.imshow("frame", mat)
-        print("====================drawing============={0}".format(b))
+        print("====================drawing=============saved result_inference.png = {0}".format(b))
         # end debug
         #return self.get_4points(results, frame)
         return results

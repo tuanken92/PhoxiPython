@@ -10,13 +10,14 @@ detector_param: Detector_Param = None
 camera_param: Cam_Param = None
 ftp_param: FTP_Param = None
 client_param: Client_Param = None
-
+debug_mode:bool = False
 
 def load_param_from_config():
     global detector_param
     global camera_param
     global ftp_param
     global client_param
+    global debug_mode
 
 
     t1 = current_milli_time()
@@ -55,9 +56,10 @@ def load_param_from_config():
         img_size = config.get("img_size")
         detector_param = Detector_Param(model_path, label_path, img_size, score, 
                                         saved, offset_w, offset_h)
-
         detector_param.print_info()
         
+        #debug
+        debug_mode = config.get("debug_mode")
     else:
         print("Configuration not loaded. Check your JSON file or path.")
     print("finish init program, took {0} ms".format(current_milli_time() - t1))

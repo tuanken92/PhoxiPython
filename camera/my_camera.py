@@ -253,9 +253,9 @@ class My_Camera:
         box = BOX()
         box.Name = label_map[result.class_index]
         box.Message = "OK"
-        box.width = result.rect_dim[0]      #w
-        box.length = result.rect_dim[1]     #h
-        box.height = result.rect_dim[2]     #z
+        box.width = int(result.rect_dim[0])      #w
+        box.length = int(result.rect_dim[1])     #h
+        box.height = int(result.rect_dim[2])     #z
         box.ImgURL = img_url
         data = (box.to_json())
         t2 = current_milli_time() -t1
@@ -415,7 +415,7 @@ class My_Camera:
         # for conner in conners:
         #     x,y=conner
         #     p.append(self.getPointCloud(y,x))
-        print(f'\tfinnal_result = {p}')
+        # print(f'\tfinnal_result = {p}')
         if len(p) != 4:
             return self.box_ng()
         #get distance from p2p
@@ -440,7 +440,9 @@ class My_Camera:
         index = (int)(y * self.cam_width + x)
         # print(f"point cloud index = {index}")
         #get data
-        print("\tMapping 2d ({0},{1}) => 3d ({2}), index = {3}".format(x,y,self.point_cloud[index],index))
+        if my_param.debug_mode:
+            print("\tMapping 2d ({0},{1}) => 3d ({2}), index = {3}".format(x,y,self.point_cloud[index],index))
+
         return self.point_cloud[index]
 
 
