@@ -1,6 +1,8 @@
 import socket
 import threading
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 #import open3d as o3d
 import cv2
@@ -15,13 +17,14 @@ from box.box import*
 from vision_dl.drawing import*
 from camera.cam_param import*
 from ftp_client.my_ftpserver import*
+import matplotlib
 
 class My_Camera:
     def __init__(self, camera_param:Cam_Param, ftp_client:My_FTPUpload) -> None:
         self.point_cloud_component = None
         self.point_cloud = None
         self.cam_width = 0
-
+        matplotlib.use('agg')
         #ftp client
         self.ftp_client = ftp_client
 
@@ -241,12 +244,37 @@ class My_Camera:
         mat = self.my_frame
         # mat = cv2.resize(mat, (640,480))
         #upload current frame
-        file_name = f'frame/frame_{current_milli_time()}.png'
+        # file_name = f'frame/frame_{current_milli_time()}.png'
+        file_name = f'frame/box_dim.png'
         is_saved_file = cv2.imwrite(file_name, mat)
         if not is_saved_file:
             print("==========> save file NG===========>")
             return self.box_ng()
 
+        # cv2.imshow("IMG", mat)
+        # img = Image.fromarray(mat, 'BGR')
+        # img.axis('scaled')
+        # img.show()
+
+        # Convert BGR image to RGB
+        # image_rgb = cv2.cvtColor(mat, cv2.COLOR_BGR2RGB)
+
+        # Display the image using Matplotlib
+
+        # Clip the image data to the valid range
+        # mat = np.clip(mat, 0, 1)  # For floating-point data
+        # # OR
+        # mat = np.clip(mat, 0, 255)  # For integer data
+
+        # plt.imshow(mat)
+        # plt.axis('off')  # Hide axis
+        # plt.show()
+        # img = mpimg.imread(file_name)
+        # plt.imshow(img, interpolation='none', aspect='auto')
+        # plt.show()
+
+        # imgplot = plt.imshow(mpimg.imread(file_name))
+        
         img_url = self.ftp_client.upload_file(file_name)
 
         #format box ng

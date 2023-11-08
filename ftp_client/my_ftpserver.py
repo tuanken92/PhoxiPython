@@ -27,7 +27,8 @@ class My_FTPUpload:
             
             # get file name
             file_name = Path(file_path).stem
-            # print(f'====> upload file: file name = {file_name}')
+            file_name = file_name + f"_{current_milli_time()}"
+            print(f'====> upload file: file name = {file_name}')
             
             self.file_on_server = f'{self.ftp_parm.dir_upload}/{file_name}.png'
             # send the file
